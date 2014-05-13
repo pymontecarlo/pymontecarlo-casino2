@@ -35,9 +35,9 @@ class _Casino2ConfigurePanelWidget(_ConfigurePanelWidget):
         # Widgets
         self._brw_exe = FileBrowseWidget()
         if os.name == 'nt':
-            self._brw_java.setNameFilter('Application files (*.exe)')
+            self._brw_exe.setNameFilter('Application files (*.exe)')
         else:
-            self._brw_java.setNameFilter('Application files (*)')
+            self._brw_exe.setNameFilter('Application files (*)')
 
         # Layouts
         layout = _ConfigurePanelWidget._initUI(self, settings)
