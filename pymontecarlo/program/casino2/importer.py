@@ -29,19 +29,17 @@ from pyxray.transition import K_family, LIII, MV
 # Local modules.
 from pymontecarlo.program.importer import Importer as _Importer
 from pymontecarlo.results.result import \
-    (
-    PhotonIntensityResult,
-    ElectronFractionResult,
-    create_intensity_dict,
-    PhotonDepthResult,
-    PhotonRadialResult,
-    create_photondist_dict,
-    BackscatteredElectronEnergyResult,
-    TransmittedElectronEnergyResult,
-    BackscatteredElectronPolarAngularResult,
-    BackscatteredElectronRadialResult,
-    TrajectoryResult,
-    Trajectory,
+    (PhotonKey,
+     PhotonIntensityResult,
+     ElectronFractionResult,
+     PhotonDepthResult,
+     PhotonRadialResult,
+     BackscatteredElectronEnergyResult,
+     TransmittedElectronEnergyResult,
+     BackscatteredElectronPolarAngularResult,
+     BackscatteredElectronRadialResult,
+     TrajectoryResult,
+     Trajectory,
     )
 from pymontecarlo.options.detector import \
     (
@@ -62,8 +60,7 @@ from casinotools.fileformat.casino2.File import File
 from casinotools.fileformat.casino2.Element import \
     LINE_K, LINE_L, LINE_M, GENERATED as CAS_GENERATED, EMITTED as CAS_EMITTED
 from pymontecarlo.results.result import \
-    (GENERATED, EMITTED, NOFLUORESCENCE, TOTAL,
-     EXIT_STATE_ABSORBED, EXIT_STATE_BACKSCATTERED, EXIT_STATE_TRANSMITTED)
+    EXIT_STATE_ABSORBED, EXIT_STATE_BACKSCATTERED, EXIT_STATE_TRANSMITTED
 from pymontecarlo.options.particle import ELECTRON
 from pymontecarlo.options.collision import NO_COLLISION
 
@@ -115,12 +112,10 @@ class Importer(_Importer):
                 datum = cas_intensities[z][line]
 
                 gt = (datum[CAS_GENERATED] * factor, 0.0)
-                et = (datum[CAS_EMITTED] * factor, 0.0)
+                intensities[PhotonKey(transition, False, PhotonKey.P)] = gt
 
-                tmpints = create_intensity_dict(transition,
-                                                gnf=gt, gt=gt,
-                                                enf=et, et=et)
-                intensities.update(tmpints)
+                et = (datum[CAS_EMITTED] * factor, 0.0)
+                intensities[PhotonKey(transition, True, PhotonKey.P)] = et
 
         return PhotonIntensityResult(intensities)
 
@@ -130,7 +125,7 @@ class Importer(_Importer):
         nz = simops.NbreCoucheRX
         zs = np.linspace(-nz * dz, 0.0, nz - 1, True)
 
-        dists = {}
+        distributions = {}
 
         for region in simdata.getRegionOptions().getRegions():
             for element in region.getElements():
@@ -140,27 +135,27 @@ class Importer(_Importer):
                 for line in delta.keys():
                     transition = LINE_LOOKUP[line](z)
 
+                    key_gnf = PhotonKey(transition, False, PhotonKey.P)
                     delta_gnf = delta[line][CAS_GENERATED][::-1]
-                    delta_enf = delta[line][CAS_EMITTED][::-1]
 
-                    if transition in dists:
-                        gnf = dists[transition][GENERATED][NOFLUORESCENCE]
+                    if key_gnf in distributions:
+                        gnf = distributions[key_gnf]
                         gnf[:, 1] += delta_gnf
-
-                        gt = dists[transition][GENERATED][TOTAL]
-                        gt[:, 1] += delta_gnf
-
-                        enf = dists[transition][EMITTED][NOFLUORESCENCE]
-                        enf[:, 1] += delta_enf
-                        et = dists[transition][EMITTED][TOTAL]
-                        et[:, 1] += delta_enf
                     else:
                         gnf = np.array([zs, delta_gnf]).transpose()
-                        enf = np.array([zs, delta_enf]).transpose()
-                        dists.update(create_photondist_dict(transition,
-                                                            gnf, gnf, enf, enf))
+                        distributions[key_gnf] = gnf
 
-        return PhotonDepthResult(dists)
+                    key_enf = PhotonKey(transition, True, PhotonKey.P)
+                    delta_enf = delta[line][CAS_EMITTED][::-1]
+
+                    if key_enf in distributions:
+                        enf = distributions[key_enf]
+                        enf[:, 1] += delta_enf
+                    else:
+                        enf = np.array([zs, delta_enf]).transpose()
+                        distributions[key_enf] = enf
+
+        return PhotonDepthResult(distributions)
 
     def _import_photon_radial(self, options, name, detector, simdata):
         simops = simdata.getSimulationOptions()
@@ -171,7 +166,7 @@ class Importer(_Importer):
         areas = np.pi * (rs[1:] ** 2 - rs[:-1] ** 2)
         rs = rs[:-1]
 
-        dists = {}
+        distributions = {}
 
         for region in simdata.getRegionOptions().getRegions():
             for element in region.getElements():
@@ -181,27 +176,27 @@ class Importer(_Importer):
                 for line in delta.keys():
                     transition = LINE_LOOKUP[line](z)
 
+                    key_gnf = PhotonKey(transition, False, PhotonKey.P)
                     delta_gnf = delta[line][CAS_GENERATED] / areas
-                    delta_enf = delta[line][CAS_EMITTED] / areas
 
-                    if transition in dists:
-                        gnf = dists[transition][GENERATED][NOFLUORESCENCE]
+                    if key_gnf in distributions:
+                        gnf = distributions[key_gnf]
                         gnf[:, 1] += delta_gnf
-
-                        gt = dists[transition][GENERATED][TOTAL]
-                        gt[:, 1] += delta_gnf
-
-                        enf = dists[transition][EMITTED][NOFLUORESCENCE]
-                        enf[:, 1] += delta_enf
-                        et = dists[transition][EMITTED][TOTAL]
-                        et[:, 1] += delta_enf
                     else:
                         gnf = np.array([rs, delta_gnf]).transpose()
-                        enf = np.array([rs, delta_enf]).transpose()
-                        dists.update(create_photondist_dict(transition,
-                                                            gnf, gnf, enf, enf))
+                        distributions[key_gnf] = gnf
 
-        return PhotonRadialResult(dists)
+                    key_enf = PhotonKey(transition, True, PhotonKey.P)
+                    delta_enf = delta[line][CAS_EMITTED] / areas
+
+                    if key_enf in distributions:
+                        enf = distributions[key_enf]
+                        enf[:, 1] += delta_enf
+                    else:
+                        enf = np.array([rs, delta_enf]).transpose()
+                        distributions[key_enf] = enf
+
+        return PhotonRadialResult(distributions)
 
     def _import_electron_fraction(self, options, name, detector, simdata):
         bse_intensity = simdata.getSimulationResults().BE_Intensity[0]
