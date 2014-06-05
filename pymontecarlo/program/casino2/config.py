@@ -19,6 +19,7 @@ __license__ = "GPL v3"
 # Standard library modules.
 import os
 import sys
+import glob
 
 # Third party modules.
 
@@ -48,20 +49,21 @@ class _CasinoProgram(Program):
             raise AssertionError("Missing 'exe' option in 'casino2' section of settings")
 
         exe = settings.casino2.exe
-        if not os.path.isfile(exe):
+        if os.path.splitext(exe)[1] != '.app' and not os.path.isfile(exe):
             raise AssertionError("Specified Casino 2 executable (%s) does not exist" % exe)
         if not os.access(exe, os.X_OK):
             raise AssertionError("Specified Casino 2 executable (%s) is not executable" % exe)
 
     def autoconfig(self, programs_path):
-        is_64bits = sys.maxsize > 2 ** 32
-        if is_64bits:
-            exe_path = os.path.join(programs_path, self.alias, 'wincasino2_64.exe')
+        if sys.platform == 'linux':
+            exe_path = '/usr/bin/casino2'
+            if not os.path.exists(exe_path):
+                return False
         else:
-            exe_path = os.path.join(programs_path, self.alias, 'wincasino2.exe')
-
-        if not os.path.exists(exe_path):
-            return False
+            paths = glob.glob(os.path.join(programs_path, self.alias, '*casino*'))
+            if len(paths) != 1:
+                return False
+            exe_path = paths[0]
 
         settings = get_settings()
         settings.add_section('casino2').exe = exe_path
