@@ -18,6 +18,7 @@ __license__ = "GPL v3"
 
 # Standard library modules.
 import os
+import sys
 
 # Third party modules.
 
@@ -51,5 +52,19 @@ class _CasinoProgram(Program):
             raise AssertionError("Specified Casino 2 executable (%s) does not exist" % exe)
         if not os.access(exe, os.X_OK):
             raise AssertionError("Specified Casino 2 executable (%s) is not executable" % exe)
+
+    def autoconfig(self, programs_path):
+        is_64bits = sys.maxsize > 2 ** 32
+        if is_64bits:
+            exe_path = os.path.join(programs_path, self.alias, 'wincasino2_64.exe')
+        else:
+            exe_path = os.path.join(programs_path, self.alias, 'wincasino2.exe')
+
+        if not os.path.exists(exe_path):
+            return False
+
+        settings = get_settings()
+        settings.add_section('casino2').exe = exe_path
+        return True
 
 program = _CasinoProgram()
