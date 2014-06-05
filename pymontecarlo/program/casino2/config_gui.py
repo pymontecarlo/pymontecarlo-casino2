@@ -31,7 +31,7 @@ from pymontecarlo.ui.gui.util.widget import FileBrowseWidget
 
 class _Casino2ConfigurePanelWidget(_ConfigurePanelWidget):
 
-    def _initUI(self, settings):
+    def _initUI(self):
         # Widgets
         self._brw_exe = FileBrowseWidget()
         if os.name == 'nt':
@@ -40,16 +40,8 @@ class _Casino2ConfigurePanelWidget(_ConfigurePanelWidget):
             self._brw_exe.setNameFilter('Application files (*)')
 
         # Layouts
-        layout = _ConfigurePanelWidget._initUI(self, settings)
+        layout = _ConfigurePanelWidget._initUI(self)
         layout.addRow('Full path to WinCasino.exe', self._brw_exe)
-
-        # Defaults
-        if 'casino2' in settings:
-            path = getattr(settings.casino2, 'exe', None)
-            try:
-                self._brw_exe.setPath(path)
-            except ValueError:
-                pass
 
         return layout
 
@@ -59,6 +51,14 @@ class _Casino2ConfigurePanelWidget(_ConfigurePanelWidget):
         if not os.access(self._brw_exe.path(), os.X_OK):
             return False
         return True
+
+    def setSettings(self, settings):
+        if 'casino2' in settings:
+            path = getattr(settings.casino2, 'exe', None)
+            try:
+                self._brw_exe.setPath(path)
+            except ValueError:
+                pass
 
     def updateSettings(self, settings):
         section = _ConfigurePanelWidget.updateSettings(self, settings)
