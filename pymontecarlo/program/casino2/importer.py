@@ -89,7 +89,7 @@ class Importer(_Importer):
         filepath = os.path.join(dirpath, options.name + '.cas')
 
         with open(filepath, 'rb') as fileobj:
-            return self.import_from_cas(options, fileobj)
+            return self.import_cas(options, fileobj)
 
     def import_cas(self, options, fileobj):
         # Read cas
