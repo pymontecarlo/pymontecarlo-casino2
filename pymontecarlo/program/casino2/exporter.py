@@ -186,7 +186,7 @@ class Exporter(_Exporter):
         simops.Beam_Diameter = 2.7947137 * beam.diameter_m * 1e9 / 2.0 # nm
 
         # Beam tilt
-        simops.Beam_angle = np.degrees(beam.direction_polar_rad)
+        simops.Beam_angle = np.degrees(beam.direction_polar_rad) - 180.0
 
     def _export_geometry(self, options, simdata, simops):
         _Exporter._export_geometry(self, options, simdata, simops)
