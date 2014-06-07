@@ -37,7 +37,7 @@ class _CasinoProgram(Program):
 
     def __init__(self):
         Program.__init__(self, 'Casino 2', 'casino2', Converter, Worker,
-                          Exporter, Importer)
+                          Exporter, Importer, autorun=False)
 
     def validate(self):
         settings = get_settings()
