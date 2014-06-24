@@ -22,7 +22,7 @@ from pymontecarlo.options.options import Options
 from pymontecarlo.options.beam import PencilBeam
 from pymontecarlo.options.detector import \
     (BackscatteredElectronEnergyDetector, PhotonSpectrumDetector,
-     PhotonDepthDetector, PhotonIntensityDetector)
+     PhiZDetector, PhotonIntensityDetector)
 from pymontecarlo.options.limit import ShowersLimit, TimeLimit
 from pymontecarlo.options.model import IONIZATION_CROSS_SECTION, ModelType
 
@@ -119,7 +119,7 @@ class TestCasino2Converter(TestCase):
         # Base options
         ops = Options(name="Test")
         ops.beam.energy = 100e3
-        ops.detectors['prz'] = PhotonDepthDetector((0, 1), (2, 3), 1000)
+        ops.detectors['prz'] = PhiZDetector((0, 1), (2, 3), 1000)
         ops.detectors['xray'] = PhotonIntensityDetector((0, 1), (2, 3))
         ops.limits.add(ShowersLimit(5678))
 

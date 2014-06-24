@@ -35,7 +35,7 @@ from pymontecarlo.options.detector import \
     (BackscatteredElectronEnergyDetector,
      BackscatteredElectronPolarAngularDetector,
      BackscatteredElectronRadialDetector,
-     PhotonDepthDetector,
+     PhiZDetector,
      PhotonRadialDetector,
      PhotonIntensityDetector,
      TransmittedElectronEnergyDetector,
@@ -61,7 +61,7 @@ class Converter(_Converter):
                  BackscatteredElectronPolarAngularDetector,
                  BackscatteredElectronRadialDetector,
                  ElectronFractionDetector,
-                 PhotonDepthDetector,
+                 PhiZDetector,
                  PhotonRadialDetector,
                  PhotonIntensityDetector,
                  TrajectoryDetector]
