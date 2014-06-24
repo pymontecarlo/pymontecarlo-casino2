@@ -23,7 +23,7 @@ from pymontecarlo.program.casino2.importer import Importer
 from pymontecarlo.options.options import Options
 from pymontecarlo.options.detector import \
     (PhotonIntensityDetector, ElectronFractionDetector,
-     PhotonDepthDetector, PhotonRadialDetector,
+     PhiZDetector, PhotonRadialDetector,
      BackscatteredElectronEnergyDetector, TransmittedElectronEnergyDetector,
      BackscatteredElectronPolarAngularDetector,
      BackscatteredElectronRadialDetector, TrajectoryDetector)
@@ -38,7 +38,7 @@ class TestCasino2Importer(TestCase):
         self.ops = Options()
         self.ops.detectors['xray'] = PhotonIntensityDetector((0, 1), (2, 3))
         self.ops.detectors['fraction'] = ElectronFractionDetector()
-        self.ops.detectors['photondepth'] = PhotonDepthDetector((0, 1), (2, 3), 500)
+        self.ops.detectors['phiz'] = PhiZDetector((0, 1), (2, 3), 500)
         self.ops.detectors['photonradial'] = PhotonRadialDetector((0, 1), (2, 3), 500)
         self.ops.detectors['bseenergy'] = BackscatteredElectronEnergyDetector(500, (0, 30e3))
         self.ops.detectors['teenergy'] = TransmittedElectronEnergyDetector(500, (0, 30e3))
@@ -60,7 +60,7 @@ class TestCasino2Importer(TestCase):
 
         result = self.results['xray']
 
-        val, unc = result.intensity('Au MV')
+        val, unc = result.intensity('Au M5')
         self.assertAlmostEqual(2.57490804844e-06, val, 10)
         self.assertAlmostEqual(0.0, unc, 4)
 
@@ -73,14 +73,14 @@ class TestCasino2Importer(TestCase):
         self.assertAlmostEqual(0.017436, val, 5)
         self.assertAlmostEqual(0.0, unc, 4)
 
-    def test_detector_photondepth(self):
-        self.assertIn('photondepth', self.results)
+    def test_detector_phiz(self):
+        self.assertIn('phiz', self.results)
 
-        result = self.results['photondepth']
+        result = self.results['phiz']
 
         self.assertEqual(11, len(list(result.iter_transitions())))
 
-        pz = result.get('Au MV')
+        pz = result.get('Au M5')
         self.assertEqual(499, len(pz[:, 0]))
         self.assertAlmostEqual(0.0, pz[-1, 0], 9)
         self.assertAlmostEqual(-1.425e-7, pz[0, 0], 9)
@@ -94,7 +94,7 @@ class TestCasino2Importer(TestCase):
 
         self.assertEqual(11, len(list(result.iter_transitions())))
 
-        pr = result.get('Zn LIII')
+        pr = result.get('Zn L3')
         self.assertEqual(499, len(pr[:, 0]))
         self.assertAlmostEqual(1.422144e-7, pr[-1, 0], 9)
         self.assertAlmostEqual(0.0, pr[0, 0], 9)

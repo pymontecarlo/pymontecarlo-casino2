@@ -39,7 +39,7 @@ from pymontecarlo.options.detector import \
      BackscatteredElectronEnergyDetector,
      BackscatteredElectronPolarAngularDetector,
      BackscatteredElectronRadialDetector,
-     PhotonDepthDetector,
+     PhiZDetector,
      PhotonRadialDetector,
      PhotonIntensityDetector,
      TransmittedElectronEnergyDetector,
@@ -99,10 +99,10 @@ class Exporter(_Exporter):
             self._detector_backscattered_electron_radial
         self._detector_exporters[TransmittedElectronEnergyDetector] = \
             self._detector_transmitted_electron_energy
-        self._detector_exporters[PhotonDepthDetector] = \
-            self._detector_photondepth
+        self._detector_exporters[PhiZDetector] = \
+            self._detector_phi_z
         self._detector_exporters[PhotonRadialDetector] = \
-            self._detector_photonradial
+            self._detector_photon_radial
         self._detector_exporters[PhotonIntensityDetector] = \
             self._detector_photon_intensity
         self._detector_exporters[ElectronFractionDetector] = \
@@ -313,12 +313,12 @@ class Exporter(_Exporter):
 #        simops.DrsrMax =
 #        simops.DrsrMin =
 
-    def _detector_photondepth(self, options, name, detector, simdata, simops):
+    def _detector_phi_z(self, options, name, detector, simdata, simops):
         # FIXME: Casino freezes when this value is set
         #simops.NbreCoucheRX = detector.channels
         simops.FEmissionRX = 1 # Simulate x-ray
 
-    def _detector_photonradial(self, options, name, detector, simdata, simops):
+    def _detector_photon_radial(self, options, name, detector, simdata, simops):
         simops.FEmissionRX = 1 # Simulate x-rays
         # FIXME: Simulation options parameters for the number of channels radially
 

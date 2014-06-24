@@ -32,7 +32,7 @@ from pymontecarlo.results.result import \
     (PhotonKey,
      PhotonIntensityResult,
      ElectronFractionResult,
-     PhotonDepthResult,
+     PhiZResult,
      PhotonRadialResult,
      BackscatteredElectronEnergyResult,
      TransmittedElectronEnergyResult,
@@ -46,7 +46,7 @@ from pymontecarlo.options.detector import \
      BackscatteredElectronEnergyDetector,
      BackscatteredElectronPolarAngularDetector,
      BackscatteredElectronRadialDetector,
-     PhotonDepthDetector,
+     PhiZDetector,
      PhotonRadialDetector,
      PhotonIntensityDetector,
      ElectronFractionDetector,
@@ -72,7 +72,7 @@ class Importer(_Importer):
         _Importer.__init__(self)
 
         self._importers[PhotonIntensityDetector] = self._import_photon_intensity
-        self._importers[PhotonDepthDetector] = self._import_photon_depth
+        self._importers[PhiZDetector] = self._import_phi_z
         self._importers[PhotonRadialDetector] = self._import_photon_radial
         self._importers[ElectronFractionDetector] = self._import_electron_fraction
         self._importers[BackscatteredElectronEnergyDetector] = \
@@ -119,7 +119,7 @@ class Importer(_Importer):
 
         return PhotonIntensityResult(intensities)
 
-    def _import_photon_depth(self, options, name, detector, simdata):
+    def _import_phi_z(self, options, name, detector, simdata):
         simops = simdata.getSimulationOptions()
         dz = simops.EpaisCouche * 1e-9 # nm
         nz = simops.NbreCoucheRX
@@ -155,7 +155,7 @@ class Importer(_Importer):
                         enf = np.array([zs, delta_enf]).transpose()
                         distributions[key_enf] = enf
 
-        return PhotonDepthResult(distributions)
+        return PhiZResult(distributions)
 
     def _import_photon_radial(self, options, name, detector, simdata):
         simops = simdata.getSimulationOptions()
