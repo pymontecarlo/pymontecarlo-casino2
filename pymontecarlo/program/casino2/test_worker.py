@@ -21,6 +21,7 @@ import shutil
 from pymontecarlo.testcase import TestCase
 
 from pymontecarlo.options.options import Options
+from pymontecarlo.options.material import Material
 from pymontecarlo.options.detector import ElectronFractionDetector
 from pymontecarlo.options.limit import ShowersLimit
 
@@ -36,8 +37,11 @@ class TestWorker(TestCase):
         TestCase.setUp(self)
 
         self.outputdir = tempfile.mkdtemp()
+        self.workdir = tempfile.mkdtemp()
 
         ops = Options('test')
+        ops.beam.energy_keV = 10
+        ops.geometry.body.material = Material.pure(29)
         ops.detectors['fraction'] = ElectronFractionDetector()
         ops.limits.add(ShowersLimit(1))
         self.ops = Converter().convert(ops)[0]
@@ -47,11 +51,16 @@ class TestWorker(TestCase):
     def tearDown(self):
         TestCase.tearDown(self)
         shutil.rmtree(self.outputdir, ignore_errors=True)
+        shutil.rmtree(self.workdir, ignore_errors=True)
 
     def testcreate(self):
         filepath = self.worker.create(self.ops, self.outputdir)
         self.assertTrue(os.path.exists(filepath))
         self.assertIn('test.sim', os.listdir(self.outputdir))
+
+    def testrun(self):
+        results = self.worker.run(self.ops, self.outputdir, self.workdir)
+        self.assertIn('fraction', results)
 
 if __name__ == '__main__': #pragma: no cover
     logging.getLogger().setLevel(logging.DEBUG)
