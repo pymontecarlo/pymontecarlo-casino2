@@ -13,7 +13,7 @@ from casinotools.fileformat.casino2.Element import \
 
 # Local modules.
 from pymontecarlo.program.importer import Importer
-from pymontecarlo.options.analyses import PhotonIntensityAnalysis
+from pymontecarlo.options.analyses import PhotonIntensityAnalysis, KRatioAnalysis
 from pymontecarlo.results.photonintensity import \
     EmittedPhotonIntensityResultBuilder, GeneratedPhotonIntensityResultBuilder
 from pymontecarlo.util.xrayline import XrayLine
@@ -32,6 +32,7 @@ class Casino2Importer(Importer):
         super().__init__()
 
         self.import_analysis_methods[PhotonIntensityAnalysis] = self._import_analysis_photonintensity
+        self.import_analysis_methods[KRatioAnalysis] = self._import_analysis_kratio
 
     def _import(self, options, dirpath, errors):
         filepath = os.path.join(dirpath, self.DEFAULT_CAS_FILENAME)
@@ -65,4 +66,8 @@ class Casino2Importer(Importer):
                 generated_builder.add_intensity(xrayline, value, error)
 
         return [emitted_builder.build(), generated_builder.build()]
+
+    def _import_analysis_kratio(self, analysis, dirpath, errors, simdata):
+        # Do nothing
+        return []
 
