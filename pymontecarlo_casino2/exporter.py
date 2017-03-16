@@ -240,7 +240,8 @@ class Casino2Exporter(Exporter):
         self._export_detector_photon(analysis.photon_detector, errors, simdata, simops)
 
     def _export_analysis_kratio(self, analysis, errors, simdata, simops):
-        self._export_detector_photon(analysis.photon_detector, errors, simdata, simops)
+        # Do nothing. The setup is taken care of by the photon intensity analysis.
+        pass
 
     def _export_limit_showers(self, limit, errors, simdata, simops):
         simops.setNumberElectrons(limit.showers)
