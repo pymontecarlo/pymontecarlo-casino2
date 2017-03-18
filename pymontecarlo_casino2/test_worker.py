@@ -19,8 +19,8 @@ from pymontecarlo_casino2.worker import Casino2Worker
 
 # Globals and constants variables.
 
-unittest.skipUnless(pymontecarlo.settings.has_program('casino2'),
-                    'Casino 2 should be configured to run these tests')
+@unittest.skipUnless(pymontecarlo.settings.has_program('casino2'),
+                     'Casino 2 should be configured to run these tests')
 class TestCasino2Worker(TestCase):
 
     def setUp(self):
