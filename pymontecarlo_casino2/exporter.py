@@ -183,9 +183,9 @@ class Casino2Exporter(Exporter):
             region = regionops.getRegion(regionops.getNumberRegions() - 1)
             _setup_region_material(region, sample.substrate_material)
 
-            _zmin_m, zmax_m = zpositions_m[-1]
+            zmin_m, _zmax_m = zpositions_m[-1]
             parameters = region.getParameters()
-            parameters[0] = abs(zmax_m) * 1e9
+            parameters[0] = abs(zmin_m) * 1e9
             parameters[2] = parameters[0] + 10.0
             region.setParameters(parameters)
 
