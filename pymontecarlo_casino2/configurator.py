@@ -5,7 +5,7 @@
 # Third party modules.
 
 # Local modules.
-from pymontecarlo.program.configurator import Configurator
+from pymontecarlo.program.configurator import Configurator, FileType
 
 # Globals and constants variables.
 
@@ -22,6 +22,7 @@ class Casino2Configurator(Configurator):
             kwargs['help'] += ' (current: {})'.format(program.executable)
         else:
             kwargs['required'] = True
+        kwargs['type'] = FileType
         parser.add_argument('--executable', **kwargs)
 
     def create_program(self, namespace, clasz):
