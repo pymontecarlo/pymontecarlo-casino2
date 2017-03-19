@@ -30,12 +30,9 @@ from pymontecarlo.options.sample import  \
 from pymontecarlo.options.limit import ShowersLimit
 from pymontecarlo.options.analyses import PhotonIntensityAnalysis, KRatioAnalysis
 from pymontecarlo.options.model import \
-    (ElasticCrossSectionModel, MOTT_CZYZEWSKI1990, MOTT_DROUIN1993, MOTT_BROWNING1994, RUTHERFORD,
-     IonizationCrossSectionModel, GAUVIN, POUCHOU1996, BROWN_POWELL, CASNATI1982, GRYZINSKY, JAKOBY,
-     IonizationPotentialModel, JOY_LUO1989, BERGER_SELTZER1983, HOVINGTON,
-     RandomNumberGeneratorModel, PRESS1996_RAND1, MERSENNE,
-     DirectionCosineModel, SOUM1979, DROUIN1996,
-     EnergyLossModel, JOY_LUO1989 as JOY_LUO1989_EL)
+    (ElasticCrossSectionModel, IonizationCrossSectionModel,
+     IonizationPotentialModel, RandomNumberGeneratorModel,
+     DirectionCosineModel, EnergyLossModel)
 
 from pymontecarlo.program.exporter import Exporter
 
@@ -247,13 +244,13 @@ class Casino2Exporter(Exporter):
         simops.setNumberElectrons(limit.showers)
 
     def _export_model_elasticcrosssection(self, model, errors, simdata, simops):
-        if model == MOTT_CZYZEWSKI1990:
+        if model == ElasticCrossSectionModel.MOTT_CZYZEWSKI1990:
             value = CROSS_SECTION_MOTT_JOY
-        elif model == MOTT_DROUIN1993:
+        elif model == ElasticCrossSectionModel.MOTT_DROUIN1993:
             value = CROSS_SECTION_MOTT_EQUATION
-        elif model == MOTT_BROWNING1994:
+        elif model == ElasticCrossSectionModel.MOTT_BROWNING1994:
             value = CROSS_SECTION_MOTT_BROWNING
-        elif model == RUTHERFORD:
+        elif model == ElasticCrossSectionModel.RUTHERFORD:
             value = CROSS_SECTION_MOTT_RUTHERFORD
         else:
             exc = ValueError('Unknown model: {0}'.format(model))
@@ -263,17 +260,17 @@ class Casino2Exporter(Exporter):
         simops.setElasticCrossSectionType(value)
 
     def _export_model_ionizationcrosssection(self, model, errors, simdata, simops):
-        if model == GAUVIN:
+        if model == IonizationCrossSectionModel.GAUVIN:
             value = IONIZATION_CROSS_SECTION_GAUVIN
-        elif model == POUCHOU1996:
+        elif model == IonizationCrossSectionModel.POUCHOU1996:
             value = IONIZATION_CROSS_SECTION_POUCHOU
-        elif model == BROWN_POWELL:
+        elif model == IonizationCrossSectionModel.BROWN_POWELL:
             value = IONIZATION_CROSS_SECTION_BROWN_POWELL
-        elif model == CASNATI1982:
+        elif model == IonizationCrossSectionModel.CASNATI1982:
             value = IONIZATION_CROSS_SECTION_CASNATI
-        elif model == GRYZINSKY:
+        elif model == IonizationCrossSectionModel.GRYZINSKY:
             value = IONIZATION_CROSS_SECTION_GRYZINSKI
-        elif model == JAKOBY:
+        elif model == IonizationCrossSectionModel.JAKOBY:
             value = IONIZATION_CROSS_SECTION_JAKOBY
         else:
             exc = ValueError('Unknown model: {0}'.format(model))
@@ -283,11 +280,11 @@ class Casino2Exporter(Exporter):
         simops.setIonizationCrossSectionType(value)
 
     def _export_model_ionizationpotential(self, model, errors, simdata, simops):
-        if model == JOY_LUO1989:
+        if model == IonizationPotentialModel.JOY_LUO1989:
             value = IONIZATION_POTENTIAL_JOY
-        elif model == BERGER_SELTZER1983:
+        elif model == IonizationPotentialModel.BERGER_SELTZER1983:
             value = IONIZATION_POTENTIAL_BERGER
-        elif model == HOVINGTON:
+        elif model == IonizationPotentialModel.HOVINGTON:
             value = IONIZATION_POTENTIAL_HOVINGTON
         else:
             exc = ValueError('Unknown model: {0}'.format(model))
@@ -297,9 +294,9 @@ class Casino2Exporter(Exporter):
         simops.setIonizationPotentialType(value)
 
     def _export_model_randomnumbergenerator(self, model, errors, simdata, simops):
-        if model == PRESS1996_RAND1:
+        if model == RandomNumberGeneratorModel.PRESS1996_RAND1:
             value = RANDOM_NUMBER_GENERATOR_PRESS_ET_AL
-        elif model == MERSENNE:
+        elif model == RandomNumberGeneratorModel.MERSENNE:
             value = RANDOM_NUMBER_GENERATOR_MERSENNE_TWISTER
         else:
             exc = ValueError('Unknown model: {0}'.format(model))
@@ -309,9 +306,9 @@ class Casino2Exporter(Exporter):
         simops.setRandomNumberGeneratorType(value)
 
     def _export_model_directioncosine(self, model, errors, simdata, simops):
-        if model == SOUM1979:
+        if model == DirectionCosineModel.SOUM1979:
             value = DIRECTION_COSINES_SOUM
-        elif model == DROUIN1996:
+        elif model == DirectionCosineModel.DROUIN1996:
             value = DIRECTION_COSINES_DROUIN
         else:
             exc = ValueError('Unknown model: {0}'.format(model))
@@ -321,7 +318,7 @@ class Casino2Exporter(Exporter):
         simops.setDirectionCosines(value)
 
     def _export_model_energyloss(self, model, errors, simdata, simops):
-        if model == JOY_LUO1989_EL:
+        if model == EnergyLossModel.JOY_LUO1989:
             value = ENERGY_LOSS_JOY_LUO
         else:
             exc = ValueError('Unknown model: {0}'.format(model))
