@@ -24,7 +24,9 @@ from pymontecarlo.testcase import TestCase
 from pymontecarlo.options.material import Material
 from pymontecarlo.options.sample import VerticalLayerSample, HorizontalLayerSample
 from pymontecarlo.options.model import \
-    MOTT_DROUIN1993, GRYZINSKY, HOVINGTON, MERSENNE, SOUM1979
+    (ElasticCrossSectionModel, IonizationCrossSectionModel,
+     IonizationPotentialModel, RandomNumberGeneratorModel,
+     DirectionCosineModel)
 
 # Globals and constants variables.
 
@@ -231,11 +233,11 @@ class TestCasino2Exporter(TestCase):
         # Options
         options = self.create_basic_options()
 
-        options.models.append(MOTT_DROUIN1993)
-        options.models.append(GRYZINSKY)
-        options.models.append(HOVINGTON)
-        options.models.append(MERSENNE)
-        options.models.append(SOUM1979)
+        options.models.append(ElasticCrossSectionModel.MOTT_DROUIN1993)
+        options.models.append(IonizationCrossSectionModel.GRYZINSKY)
+        options.models.append(IonizationPotentialModel.HOVINGTON)
+        options.models.append(RandomNumberGeneratorModel.MERSENNE)
+        options.models.append(DirectionCosineModel.SOUM1979)
 
         # Export
         self.e.export(options, self.tmpdir)

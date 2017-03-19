@@ -14,12 +14,9 @@ from pymontecarlo.options.sample import \
     SubstrateSample, HorizontalLayerSample, VerticalLayerSample
 from pymontecarlo.options.limit import ShowersLimit
 from pymontecarlo.options.model import \
-    (ElasticCrossSectionModel, MOTT_CZYZEWSKI1990, MOTT_DROUIN1993, MOTT_BROWNING1994, RUTHERFORD,
-     IonizationCrossSectionModel, GAUVIN, POUCHOU1996, BROWN_POWELL, CASNATI1982, GRYZINSKI, JAKOBY,
-     IonizationPotentialModel, JOY_LUO1989, BERGER_SELTZER1983, HOVINGTON,
-     RandomNumberGeneratorModel, PRESS1996_RAND1, MERSENNE,
-     DirectionCosineModel, SOUM1979, DROUIN1996,
-     EnergyLossModel, JOY_LUO1989 as JOY_LUO1989_EL)
+    (ElasticCrossSectionModel, IonizationCrossSectionModel,
+     IonizationPotentialModel, RandomNumberGeneratorModel,
+     DirectionCosineModel, EnergyLossModel,)
 from pymontecarlo.options.analyses import PhotonIntensityAnalysis, KRatioAnalysis
 
 # Globals and constants variables.
@@ -49,20 +46,37 @@ class Casino2Validator(Validator):
         #self.model_validate_methods[MassAbsorptionCoefficientModel] = self._validate_model_valid_models
         #TODO: Validate MAC from Casino2
 
-        self.valid_models[ElasticCrossSectionModel] = (MOTT_CZYZEWSKI1990, MOTT_DROUIN1993, MOTT_BROWNING1994, RUTHERFORD)
-        self.valid_models[IonizationCrossSectionModel] = (GAUVIN, POUCHOU1996, BROWN_POWELL, CASNATI1982, GRYZINSKI, JAKOBY)
-        self.valid_models[IonizationPotentialModel] = (JOY_LUO1989, BERGER_SELTZER1983, HOVINGTON)
-        self.valid_models[RandomNumberGeneratorModel] = (PRESS1996_RAND1, MERSENNE)
-        self.valid_models[DirectionCosineModel] = (SOUM1979, DROUIN1996)
-        self.valid_models[EnergyLossModel] = (JOY_LUO1989_EL,)
+        self.valid_models[ElasticCrossSectionModel] = \
+            (ElasticCrossSectionModel.MOTT_CZYZEWSKI1990,
+             ElasticCrossSectionModel.MOTT_DROUIN1993,
+             ElasticCrossSectionModel.MOTT_BROWNING1994,
+             ElasticCrossSectionModel.RUTHERFORD)
+        self.valid_models[IonizationCrossSectionModel] = \
+            (IonizationCrossSectionModel.GAUVIN,
+             IonizationCrossSectionModel.POUCHOU1996,
+             IonizationCrossSectionModel.BROWN_POWELL,
+             IonizationCrossSectionModel.CASNATI1982,
+             IonizationCrossSectionModel.GRYZINSKY,
+             IonizationCrossSectionModel.JAKOBY)
+        self.valid_models[IonizationPotentialModel] = \
+            (IonizationPotentialModel.JOY_LUO1989,
+             IonizationPotentialModel.BERGER_SELTZER1983,
+             IonizationPotentialModel.HOVINGTON)
+        self.valid_models[RandomNumberGeneratorModel] = \
+            (RandomNumberGeneratorModel.PRESS1996_RAND1,
+             RandomNumberGeneratorModel.MERSENNE)
+        self.valid_models[DirectionCosineModel] = \
+            (DirectionCosineModel.SOUM1979,
+             DirectionCosineModel.DROUIN1996)
+        self.valid_models[EnergyLossModel] = (EnergyLossModel.JOY_LUO1989,)
         #self.valid_models[MassAbsorptionCoefficientModel] = ()
 
-        self.default_models[ElasticCrossSectionModel] = MOTT_CZYZEWSKI1990
-        self.default_models[IonizationCrossSectionModel] = CASNATI1982
-        self.default_models[IonizationPotentialModel] = JOY_LUO1989
-        self.default_models[RandomNumberGeneratorModel] = PRESS1996_RAND1
-        self.default_models[DirectionCosineModel] = DROUIN1996
-        self.default_models[EnergyLossModel] = JOY_LUO1989_EL
+        self.default_models[ElasticCrossSectionModel] = ElasticCrossSectionModel.MOTT_CZYZEWSKI1990
+        self.default_models[IonizationCrossSectionModel] = IonizationCrossSectionModel.CASNATI1982
+        self.default_models[IonizationPotentialModel] = IonizationPotentialModel.JOY_LUO1989
+        self.default_models[RandomNumberGeneratorModel] = RandomNumberGeneratorModel.PRESS1996_RAND1
+        self.default_models[DirectionCosineModel] = DirectionCosineModel.DROUIN1996
+        self.default_models[EnergyLossModel] = EnergyLossModel.JOY_LUO1989
 
     def _validate_program(self, program, options, errors):
         program = super()._validate_program(program, options, errors)
