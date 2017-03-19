@@ -7,7 +7,7 @@ import os
 
 # Local modules.
 from pymontecarlo.program.validator import Validator
-from pymontecarlo.options.particle import ELECTRON
+from pymontecarlo.options.particle import Particle
 from pymontecarlo.options.material import VACUUM
 from pymontecarlo.options.beam import GaussianBeam
 from pymontecarlo.options.sample import \
@@ -92,7 +92,7 @@ class Casino2Validator(Validator):
     def _validate_beam_base_particle(self, particle, options, errors):
         particle = super()._validate_beam_base_particle(particle, options, errors)
 
-        if particle != ELECTRON:
+        if particle is not Particle.ELECTRON:
             exc = ValueError('Particle {0} is not supported. Only ELECTRON.'
                              .format(particle))
             errors.add(exc)
