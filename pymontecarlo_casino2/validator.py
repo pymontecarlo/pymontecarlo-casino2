@@ -17,7 +17,7 @@ from pymontecarlo.options.model import \
     (ElasticCrossSectionModel, IonizationCrossSectionModel,
      IonizationPotentialModel, RandomNumberGeneratorModel,
      DirectionCosineModel, EnergyLossModel,)
-from pymontecarlo.options.analyses import PhotonIntensityAnalysis, KRatioAnalysis
+from pymontecarlo.options.analysis import PhotonIntensityAnalysis, KRatioAnalysis
 
 # Globals and constants variables.
 
