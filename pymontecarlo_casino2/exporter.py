@@ -28,7 +28,7 @@ from pymontecarlo.options.beam import GaussianBeam
 from pymontecarlo.options.sample import  \
     SubstrateSample, HorizontalLayerSample, VerticalLayerSample
 from pymontecarlo.options.limit import ShowersLimit
-from pymontecarlo.options.analyses import PhotonIntensityAnalysis, KRatioAnalysis
+from pymontecarlo.options.analysis import PhotonIntensityAnalysis, KRatioAnalysis
 from pymontecarlo.options.model import \
     (ElasticCrossSectionModel, IonizationCrossSectionModel,
      IonizationPotentialModel, RandomNumberGeneratorModel,

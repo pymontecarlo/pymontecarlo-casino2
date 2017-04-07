@@ -13,7 +13,7 @@ from casinotools.fileformat.casino2.Element import \
 
 # Local modules.
 from pymontecarlo.program.importer import Importer
-from pymontecarlo.options.analyses import PhotonIntensityAnalysis, KRatioAnalysis
+from pymontecarlo.options.analysis import PhotonIntensityAnalysis, KRatioAnalysis
 from pymontecarlo.results.photonintensity import \
     EmittedPhotonIntensityResultBuilder, GeneratedPhotonIntensityResultBuilder
 from pymontecarlo.util.xrayline import XrayLine
