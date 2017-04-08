@@ -46,4 +46,4 @@ class Casino2Program(Program):
         return Casino2Importer()
 
     def create_default_limits(self, options):
-        return ShowersLimit(10000)
+        return [ShowersLimit(10000)]

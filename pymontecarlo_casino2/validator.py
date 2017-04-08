@@ -182,17 +182,18 @@ class Casino2Validator(Validator):
 
         return layers
 
-    def _validate_limit_showers_showers(self, showers, options, errors):
-        showers = super()._validate_limit_showers_showers(showers, options, errors)
+    def _validate_limit_showers_number_trajectories(self, showers, options, errors):
+        number_trajectories = \
+            super()._validate_limit_showers_number_trajectories(showers, options, errors)
 
-        if showers < 25:
+        if number_trajectories < 25:
             exc = ValueError('Number of showers ({0:d}) must be greater or equal to 25.'
-                             .format(showers))
+                             .format(number_trajectories))
             errors.add(exc)
 
-        if showers > 1e9:
+        if number_trajectories > 1e9:
             exc = ValueError('Number of showers ({0:d}) must be less than 1e9.'
-                             .format(showers))
+                             .format(number_trajectories))
             errors.add(exc)
 
-        return showers
+        return number_trajectories
