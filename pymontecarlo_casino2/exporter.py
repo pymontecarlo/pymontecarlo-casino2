@@ -241,7 +241,7 @@ class Casino2Exporter(Exporter):
         pass
 
     def _export_limit_showers(self, limit, errors, simdata, simops):
-        simops.setNumberElectrons(limit.showers)
+        simops.setNumberElectrons(limit.number_trajectories)
 
     def _export_model_elasticcrosssection(self, model, errors, simdata, simops):
         if model == ElasticCrossSectionModel.MOTT_CZYZEWSKI1990:
