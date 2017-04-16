@@ -33,7 +33,7 @@ class Casino2Worker(Worker, SubprocessWorkerMixin):
         args = [executable, '-batch', simfilepath]
         logging.debug('Launching %s', ' '.join(args))
 
-        token.update(0.0, 'Running Casino 2')
+        token.update(0.1, 'Running Casino 2')
         stdout = subprocess.PIPE
         cwd = executable_dir
 
