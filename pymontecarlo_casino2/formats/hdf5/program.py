@@ -6,7 +6,7 @@
 import numpy as np
 
 # Local modules.
-from pymontecarlo.fileformat.base import HDF5Handler
+from pymontecarlo.formats.hdf5.base import HDF5Handler
 
 from pymontecarlo_casino2.program import Casino2Program
 
