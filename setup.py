@@ -26,8 +26,8 @@ CMDCLASS = versioneer.get_cmdclass()
 ENTRY_POINTS = {'pymontecarlo.program':
                 ['casino2 = pymontecarlo_casino2.program:Casino2Program'],
 
-                'pymontecarlo.fileformat':
-                ['Casino2ProgramHDF5Handler = pymontecarlo_casino2.fileformat.program:Casino2ProgramHDF5Handler']}
+                'pymontecarlo.formats.hdf5':
+                ['Casino2ProgramHDF5Handler = pymontecarlo_casino2.formats.hdf5.program:Casino2ProgramHDF5Handler']}
 
 setup(name="pyMonteCarlo-Casino2",
       version=versioneer.get_version(),
