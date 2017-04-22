@@ -6,6 +6,9 @@ Casino 2 worker
 import logging
 import os
 import subprocess
+import tempfile
+import shutil
+from distutils.dir_util import copy_tree
 
 # Third party modules.
 
@@ -25,24 +28,35 @@ class Casino2Worker(Worker, SubprocessWorkerMixin):
         executable = program.executable
         executable_dir = os.path.dirname(executable)
 
-        exporter.export(options, outputdir)
-        simfilepath = os.path.join(outputdir, exporter.DEFAULT_SIM_FILENAME)
-        simfilepath = simfilepath.replace('/', '\\')
+        # NOTE: Create a temporary directory because Casino cannot
+        # accept long file path
+        tmpdir = tempfile.mkdtemp()
 
-        # Launch
-        args = [executable, '-batch', simfilepath]
-        logging.debug('Launching %s', ' '.join(args))
+        try:
+            # Export
+            exporter.export(options, tmpdir)
+            simfilepath = os.path.join(tmpdir, exporter.DEFAULT_SIM_FILENAME)
+            simfilepath = simfilepath.replace('/', '\\')
 
-        token.update(0.1, 'Running Casino 2')
-        stdout = subprocess.PIPE
-        cwd = executable_dir
+            # Launch
+            args = [executable, '-batch', simfilepath]
+            logging.debug('Launching %s', ' '.join(args))
 
-        with self._create_process(args, stdout=stdout, cwd=cwd) as process:
-            self._wait_process(process, token)
+            token.update(0.1, 'Running Casino 2')
+            stdout = subprocess.PIPE
+            cwd = executable_dir
 
-        # Import results
-        token.update(0.9, 'Importing results')
-        simulation.results += importer.import_(options, outputdir)
+            with self._create_process(args, stdout=stdout, cwd=cwd) as process:
+                self._wait_process(process, token)
+
+            # Import results
+            token.update(0.9, 'Importing results')
+            simulation.results += importer.import_(options, tmpdir)
+
+            # Copy to output directory
+            copy_tree(tmpdir, outputdir)
+        finally:
+            shutil.rmtree(tmpdir, ignore_errors=True)
 
         token.update(1.0, 'Casino 2 ended')
         return simulation
