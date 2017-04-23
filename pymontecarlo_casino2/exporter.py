@@ -154,6 +154,8 @@ class Casino2Exporter(Exporter):
         # radius.
         simops.Beam_Diameter = 2.7947137 * beam.diameter_m * 1e9 / 2.0 # nm
 
+        simops.Beam_angle = 0.0
+
     def _export_sample_substrate(self, sample, errors, simdata, simops):
         regionops = simdata.getRegionOptions()
 
