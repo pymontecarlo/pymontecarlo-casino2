@@ -6,13 +6,13 @@
 import numpy as np
 
 # Local modules.
-from pymontecarlo.formats.hdf5.base import HDF5Handler
+from pymontecarlo.formats.hdf5.program.base import ProgramHDF5Handler
 
 from pymontecarlo_casino2.program import Casino2Program
 
 # Globals and constants variables.
 
-class Casino2ProgramHDF5Handler(HDF5Handler):
+class Casino2ProgramHDF5Handler(ProgramHDF5Handler):
 
     ATTR_EXECUTABLE = 'executable'
 
