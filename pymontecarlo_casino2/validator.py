@@ -78,14 +78,6 @@ class Casino2Validator(Validator):
         self.default_models[DirectionCosineModel] = DirectionCosineModel.DROUIN1996
         self.default_models[EnergyLossModel] = EnergyLossModel.JOY_LUO1989
 
-    def _validate_program(self, program, options, errors):
-        program = super()._validate_program(program, options, errors)
-
-        program.executable = \
-            self._validate_program_executable(program.executable, options, errors)
-
-        return program
-
     def _validate_program_executable(self, executable, options, errors):
         if not os.path.exists(executable):
             exc = ValueError("Specified executable ({}) does not exist"
