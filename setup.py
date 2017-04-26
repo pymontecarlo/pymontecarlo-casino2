@@ -16,7 +16,14 @@ with open(os.path.join(BASEDIR, 'README.rst'), 'r') as fp:
     LONG_DESCRIPTION = fp.read()
 
 PACKAGES = find_packages()
-PACKAGE_DATA = {'pymontecarlo.program.casino2': ['templates/*.sim']}
+PACKAGE_DATA = {'pymontecarlo_casino2': ['templates/*.sim']}
+
+casinodir = os.path.join(BASEDIR, 'pymontecarlo_casino2', 'casino2')
+for root, _dirnames, filenames in os.walk(casinodir):
+    dirpath = os.path.join('casino2', root[len(casinodir) + 1:])
+    for filename in filenames:
+        relpath = os.path.join(dirpath, filename)
+        PACKAGE_DATA['pymontecarlo_casino2'].append(relpath)
 
 INSTALL_REQUIRES = ['pymontecarlo', 'pycasinotools']
 EXTRAS_REQUIRE = {'develop': ['nose', 'coverage']}

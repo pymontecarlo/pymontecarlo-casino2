@@ -5,6 +5,7 @@ Casino 2 worker
 # Standard library modules.
 import logging
 import os
+import sys
 import subprocess
 import tempfile
 import shutil
@@ -13,6 +14,7 @@ from distutils.dir_util import copy_tree
 # Third party modules.
 
 # Local modules.
+from pymontecarlo.exceptions import WorkerError
 from pymontecarlo.program.worker import Worker, SubprocessWorkerMixin
 
 # Globals and constants variables.
@@ -39,7 +41,14 @@ class Casino2Worker(Worker, SubprocessWorkerMixin):
             simfilepath = simfilepath.replace('/', '\\')
 
             # Launch
-            args = [executable, '-batch', simfilepath]
+            if sys.platform == 'win32':
+                args = [executable, '-batch', simfilepath]
+            elif sys.platform == 'linux' or sys.platform == 'darwin':
+                args = ['wine', executable, '-batch', simfilepath]
+            else:
+                raise WorkerError('Unsupported operating system: {}'
+                                  .format(sys.platform))
+
             logging.debug('Launching %s', ' '.join(args))
 
             token.update(0.1, 'Running Casino 2')
