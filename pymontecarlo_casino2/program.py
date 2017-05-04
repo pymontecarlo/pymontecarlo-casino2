@@ -2,6 +2,7 @@
 
 # Standard library modules.
 import os
+import sys
 
 # Third party modules.
 
@@ -55,7 +56,10 @@ class Casino2Program(Program):
         if not os.path.exists(casino2dir):
             raise RuntimeError('Casino 2 program cannot be found')
 
-        filename = 'wincasino2_64.exe' if is_64bits() else 'wincasino2.exe'
+        if sys.platform == 'darwin': # Wine only works with 32-bit
+            filename = 'wincasino2.exe'
+        else:
+            filename = 'wincasino2_64.exe' if is_64bits() else 'wincasino2.exe'
         filepath = os.path.join(casino2dir, filename)
 
         if not os.path.exists(filepath):
