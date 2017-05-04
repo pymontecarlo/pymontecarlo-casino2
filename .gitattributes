@@ -1,0 +1,2 @@
+pymontecarlo_casino2/_version.py export-subst
+pymontecarlo_casino2/casino2/** filter=lfs diff=lfs merge=lfs -text

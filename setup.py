@@ -1,27 +1,44 @@
 #!/usr/bin/env python
 
-# Script information for the file.
-__author__ = "Philippe T. Pinard"
-__email__ = "philippe.pinard@gmail.com"
-__version__ = "0.1"
-__copyright__ = "Copyright (c) 2013 Philippe T. Pinard"
-__license__ = "GPL v3"
-
 # Standard library modules.
+import os
 
 # Third party modules.
 from setuptools import setup, find_packages
 
 # Local modules.
-from pymontecarlo.util.dist.command import clean
+import versioneer
 
 # Globals and constants variables.
+BASEDIR = os.path.abspath(os.path.dirname(__file__))
 
-cmdclass = {'clean': clean}
+with open(os.path.join(BASEDIR, 'README.rst'), 'r') as fp:
+    LONG_DESCRIPTION = fp.read()
+
+PACKAGES = find_packages()
+PACKAGE_DATA = {'pymontecarlo_casino2': ['templates/*.sim']}
+
+casinodir = os.path.join(BASEDIR, 'pymontecarlo_casino2', 'casino2')
+for root, _dirnames, filenames in os.walk(casinodir):
+    dirpath = os.path.join('casino2', root[len(casinodir) + 1:])
+    for filename in filenames:
+        relpath = os.path.join(dirpath, filename)
+        PACKAGE_DATA['pymontecarlo_casino2'].append(relpath)
+
+INSTALL_REQUIRES = ['pymontecarlo', 'pycasinotools']
+EXTRAS_REQUIRE = {'develop': ['nose', 'coverage']}
+
+CMDCLASS = versioneer.get_cmdclass()
+
+ENTRY_POINTS = {'pymontecarlo.program':
+                ['casino2 = pymontecarlo_casino2.program:Casino2Program'],
+
+                'pymontecarlo.formats.hdf5':
+                ['Casino2ProgramHDF5Handler = pymontecarlo_casino2.formats.hdf5.program:Casino2ProgramHDF5Handler']}
 
 setup(name="pyMonteCarlo-Casino2",
-      version='0.1',
-      url='http://pymontecarlo.bitbucket.org',
+      version=versioneer.get_version(),
+      url='https://github.com/pymontecarlo',
       description="Python interface for Monte Carlo simulation program Casino 2",
       author="Hendrix Demers and Philippe T. Pinard",
       author_email="hendrix.demers@mail.mcgill.ca and philippe.pinard@gmail.com",
@@ -35,19 +52,15 @@ setup(name="pyMonteCarlo-Casino2",
                    'Topic :: Scientific/Engineering',
                    'Topic :: Scientific/Engineering :: Physics'],
 
-      packages=find_packages(),
-      package_data={'pymontecarlo.program.casino2': ['templates/*.sim']},
+      packages=PACKAGES,
+      package_data=PACKAGE_DATA,
 
-      install_requires=['pyCasinoTools', 'pyMonteCarlo', 'PySide', 'pyxray'],
+      install_requires=INSTALL_REQUIRES,
+      extras_require=EXTRAS_REQUIRE,
 
-      cmdclass=cmdclass,
+      cmdclass=CMDCLASS,
 
-      entry_points={'pymontecarlo.program':
-                        'casino2=pymontecarlo.program.casino2.config:program',
-                    'pymontecarlo.program.cli':
-                        'casino2=pymontecarlo.program.casino2.config_cli:cli',
-                    'pymontecarlo.program.gui':
-                        'casino2=pymontecarlo.program.casino2.config_gui:gui', },
+      entry_points=ENTRY_POINTS,
 
       test_suite='nose.collector',
 )
