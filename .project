@@ -3,6 +3,7 @@
 	<name>pymontecarlo-casino2</name>
 	<comment></comment>
 	<projects>
+		<project>pyCasinoTools</project>
 		<project>pymontecarlo</project>
 	</projects>
 	<buildSpec>
