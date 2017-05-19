@@ -1,7 +1,6 @@
 """"""
 
 # Standard library modules.
-import os
 
 # Third party modules.
 
@@ -77,19 +76,6 @@ class Casino2Validator(Validator):
         self.default_models[RandomNumberGeneratorModel] = RandomNumberGeneratorModel.PRESS1996_RAND1
         self.default_models[DirectionCosineModel] = DirectionCosineModel.DROUIN1996
         self.default_models[EnergyLossModel] = EnergyLossModel.JOY_LUO1989
-
-    def _validate_program_executable(self, executable, options, errors):
-        if not os.path.exists(executable):
-            exc = ValueError("Specified executable ({}) does not exist"
-                             .format(executable))
-            errors.add(exc)
-
-        if not os.access(executable, os.X_OK):
-            exc = ValueError("Specified executable ({}) is not executable"
-                             .format(executable))
-            errors.add(exc)
-
-        return executable
 
     def _validate_beam_base_energy_eV(self, energy_eV, options, errors):
         #NOTE: Casino does not seem to have an upper energy limit
