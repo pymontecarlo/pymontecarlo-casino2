@@ -4,8 +4,6 @@
 # Standard library modules.
 import unittest
 import logging
-import tempfile
-import shutil
 import os
 import glob
 import operator
@@ -37,11 +35,7 @@ class TestCasino2Exporter(TestCase):
 
         self.e = Casino2Exporter()
 
-        self.tmpdir = tempfile.mkdtemp()
-
-    def tearDown(self):
-        super().tearDown()
-        shutil.rmtree(self.tmpdir, ignore_errors=True)
+        self.tmpdir = self.create_temp_dir()
 
     def testexport(self):
         # Options
