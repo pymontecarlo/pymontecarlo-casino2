@@ -28,6 +28,7 @@ from pymontecarlo.options.beam import GaussianBeam
 from pymontecarlo.options.sample import  \
     SubstrateSample, HorizontalLayerSample, VerticalLayerSample
 from pymontecarlo.options.limit import ShowersLimit
+from pymontecarlo.options.detector import PhotonDetector
 from pymontecarlo.options.analysis import PhotonIntensityAnalysis, KRatioAnalysis
 from pymontecarlo.options.model import \
     (ElasticCrossSectionModel, IonizationCrossSectionModel,
@@ -70,6 +71,8 @@ class Casino2Exporter(Exporter):
         self.sample_export_methods[SubstrateSample] = self._export_sample_substrate
         self.sample_export_methods[HorizontalLayerSample] = self._export_sample_horizontallayers
         self.sample_export_methods[VerticalLayerSample] = self._export_sample_verticallayers
+
+        self.detector_export_methods[PhotonDetector] = self._export_detector_photon
 
         self.analysis_export_methods[PhotonIntensityAnalysis] = self._export_analysis_photonintensity
         self.analysis_export_methods[KRatioAnalysis] = self._export_analysis_kratio
@@ -220,6 +223,11 @@ class Casino2Exporter(Exporter):
         parameters[2] = parameters[0] + 10.0
         region.setParameters(parameters)
 
+    def _export_detectors(self, detectors, options, errors, simdata, simops):
+        simops.FEmissionRX = 0 # Do not simulate x-rays
+
+        super()._export_detectors(detectors, options, errors, simdata, simops)
+
     def _export_detector_photon(self, detector, options, errors, simdata, simops):
         simops.TOA = detector.elevation_deg
         simops.PhieRX = detector.azimuth_deg
@@ -227,16 +235,14 @@ class Casino2Exporter(Exporter):
 
     def _export_analyses(self, analyses, options, errors, simdata, simops):
         simops.RangeFinder = 3 # Fixed range
-        simops.FEmissionRX = 0 # Do not simulate x-rays
         simops.Memory_Keep = 0 # Do not save trajectories
 
         super()._export_analyses(analyses, options, errors, simdata, simops)
 
     def _export_analysis_photonintensity(self, analysis, options, errors, simdata, simops):
-        self._export_detector_photon(analysis.photon_detector, options, errors, simdata, simops)
+        pass
 
     def _export_analysis_kratio(self, analysis, options, errors, simdata, simops):
-        # Do nothing. The setup is taken care of by the photon intensity analysis.
         pass
 
     def _export_limit_showers(self, limit, options, errors, simdata, simops):
