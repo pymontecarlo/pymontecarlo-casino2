@@ -42,7 +42,7 @@ def _setup_region_material(region, material):
     region.removeAllElements()
 
     for z, fraction in material.composition.items():
-        region.addElement(pyxray.element_symbol(z), weightFraction=fraction)
+        region.addElement(pyxray.element_symbol(z), weight_fraction=fraction)
 
     region.update() # Calculate number of elements, mean atomic number
 
@@ -141,7 +141,7 @@ class Casino2Exporter(Exporter):
             errors.add(exc)
             return None
 
-    def _export_beam_gaussian(self, beam, errors, simdata, simops):
+    def _export_beam_gaussian(self, beam, options, errors, simdata, simops):
         simops.setIncidentEnergy_keV(beam.energy_eV / 1000.0) # keV
         simops.setPosition(beam.x0_m * 1e9) # nm
 
@@ -156,13 +156,13 @@ class Casino2Exporter(Exporter):
 
         simops.Beam_angle = 0.0
 
-    def _export_sample_substrate(self, sample, errors, simdata, simops):
+    def _export_sample_substrate(self, sample, options, errors, simdata, simops):
         regionops = simdata.getRegionOptions()
 
         region = regionops.getRegion(0)
         _setup_region_material(region, sample.material)
 
-    def _export_sample_horizontallayers(self, sample, errors, simdata, simops):
+    def _export_sample_horizontallayers(self, sample, options, errors, simdata, simops):
         regionops = simdata.getRegionOptions()
         layers = sample.layers
         zpositions_m = sample.layers_zpositions_m
@@ -185,7 +185,7 @@ class Casino2Exporter(Exporter):
             parameters[2] = parameters[0] + 10.0
             region.setParameters(parameters)
 
-    def _export_sample_verticallayers(self, sample, errors, simdata, simops):
+    def _export_sample_verticallayers(self, sample, options, errors, simdata, simops):
         regionops = simdata.getRegionOptions()
         layers = sample.layers
         xpositions_m = sample.layers_xpositions_m
@@ -220,29 +220,29 @@ class Casino2Exporter(Exporter):
         parameters[2] = parameters[0] + 10.0
         region.setParameters(parameters)
 
-    def _export_detector_photon(self, detector, errors, simdata, simops):
+    def _export_detector_photon(self, detector, options, errors, simdata, simops):
         simops.TOA = detector.elevation_deg
         simops.PhieRX = detector.azimuth_deg
         simops.FEmissionRX = 1 # Simulate x-rays
 
-    def _export_analyses(self, analyses, errors, simdata, simops):
+    def _export_analyses(self, analyses, options, errors, simdata, simops):
         simops.RangeFinder = 3 # Fixed range
         simops.FEmissionRX = 0 # Do not simulate x-rays
         simops.Memory_Keep = 0 # Do not save trajectories
 
-        super()._export_analyses(analyses, errors, simdata, simops)
+        super()._export_analyses(analyses, options, errors, simdata, simops)
 
-    def _export_analysis_photonintensity(self, analysis, errors, simdata, simops):
-        self._export_detector_photon(analysis.photon_detector, errors, simdata, simops)
+    def _export_analysis_photonintensity(self, analysis, options, errors, simdata, simops):
+        self._export_detector_photon(analysis.photon_detector, options, errors, simdata, simops)
 
-    def _export_analysis_kratio(self, analysis, errors, simdata, simops):
+    def _export_analysis_kratio(self, analysis, options, errors, simdata, simops):
         # Do nothing. The setup is taken care of by the photon intensity analysis.
         pass
 
-    def _export_limit_showers(self, limit, errors, simdata, simops):
+    def _export_limit_showers(self, limit, options, errors, simdata, simops):
         simops.setNumberElectrons(limit.number_trajectories)
 
-    def _export_model_elasticcrosssection(self, model, errors, simdata, simops):
+    def _export_model_elasticcrosssection(self, model, options, errors, simdata, simops):
         if model == ElasticCrossSectionModel.MOTT_CZYZEWSKI1990:
             value = CROSS_SECTION_MOTT_JOY
         elif model == ElasticCrossSectionModel.MOTT_DROUIN1993:
@@ -258,7 +258,7 @@ class Casino2Exporter(Exporter):
 
         simops.setElasticCrossSectionType(value)
 
-    def _export_model_ionizationcrosssection(self, model, errors, simdata, simops):
+    def _export_model_ionizationcrosssection(self, model, options, errors, simdata, simops):
         if model == IonizationCrossSectionModel.GAUVIN:
             value = IONIZATION_CROSS_SECTION_GAUVIN
         elif model == IonizationCrossSectionModel.POUCHOU1996:
@@ -278,7 +278,7 @@ class Casino2Exporter(Exporter):
 
         simops.setIonizationCrossSectionType(value)
 
-    def _export_model_ionizationpotential(self, model, errors, simdata, simops):
+    def _export_model_ionizationpotential(self, model, options, errors, simdata, simops):
         if model == IonizationPotentialModel.JOY_LUO1989:
             value = IONIZATION_POTENTIAL_JOY
         elif model == IonizationPotentialModel.BERGER_SELTZER1983:
@@ -292,7 +292,7 @@ class Casino2Exporter(Exporter):
 
         simops.setIonizationPotentialType(value)
 
-    def _export_model_randomnumbergenerator(self, model, errors, simdata, simops):
+    def _export_model_randomnumbergenerator(self, model, options, errors, simdata, simops):
         if model == RandomNumberGeneratorModel.PRESS1996_RAND1:
             value = RANDOM_NUMBER_GENERATOR_PRESS_ET_AL
         elif model == RandomNumberGeneratorModel.MERSENNE:
@@ -304,7 +304,7 @@ class Casino2Exporter(Exporter):
 
         simops.setRandomNumberGeneratorType(value)
 
-    def _export_model_directioncosine(self, model, errors, simdata, simops):
+    def _export_model_directioncosine(self, model, options, errors, simdata, simops):
         if model == DirectionCosineModel.SOUM1979:
             value = DIRECTION_COSINES_SOUM
         elif model == DirectionCosineModel.DROUIN1996:
@@ -316,7 +316,7 @@ class Casino2Exporter(Exporter):
 
         simops.setDirectionCosines(value)
 
-    def _export_model_energyloss(self, model, errors, simdata, simops):
+    def _export_model_energyloss(self, model, options, errors, simdata, simops):
         if model == EnergyLossModel.JOY_LUO1989:
             value = ENERGY_LOSS_JOY_LUO
         else:
