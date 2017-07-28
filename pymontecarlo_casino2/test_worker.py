@@ -19,7 +19,7 @@ from pymontecarlo_casino2.worker import Casino2Worker
 
 # Globals and constants variables.
 
-@unittest.skipUnless(pymontecarlo.settings.is_program_activated('casino2'),
+@unittest.skipUnless(pymontecarlo.settings.is_program_available('casino2'),
                      'Casino 2 should be configured to run these tests')
 class TestCasino2Worker(TestCase):
 
