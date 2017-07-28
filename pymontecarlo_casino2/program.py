@@ -11,7 +11,6 @@ from pymontecarlo.program.base import Program
 from pymontecarlo.util.sysutil import is_64bits
 from pymontecarlo.options.limit import ShowersLimit
 
-from pymontecarlo_casino2.configurator import Casino2Configurator
 from pymontecarlo_casino2.expander import Casino2Expander
 from pymontecarlo_casino2.exporter import Casino2Exporter
 from pymontecarlo_casino2.importer import Casino2Importer
@@ -21,14 +20,6 @@ from pymontecarlo_casino2.worker import Casino2Worker
 # Globals and constants variables.
 
 class Casino2Program(Program):
-
-    @classmethod
-    def getidentifier(self):
-        return 'casino2'
-
-    @classmethod
-    def create_configurator(cls):
-        return Casino2Configurator()
 
     def create_expander(self):
         return Casino2Expander()
@@ -47,6 +38,10 @@ class Casino2Program(Program):
 
     def create_default_limits(self, options):
         return [ShowersLimit(10000)]
+
+    @property
+    def name(self):
+        return 'casino2'
 
     @property
     def executable(self):
