@@ -8,7 +8,6 @@ import logging
 # Third party modules.
 
 # Local modules.
-import pymontecarlo
 from pymontecarlo.testcase import TestCase
 from pymontecarlo.simulation import Simulation
 from pymontecarlo.options.material import Material
@@ -16,11 +15,11 @@ from pymontecarlo.options.sample import \
     SubstrateSample, HorizontalLayerSample, VerticalLayerSample
 from pymontecarlo.util.future import Token
 from pymontecarlo_casino2.worker import Casino2Worker
+from pymontecarlo_casino2.program import Casino2Program
 
 # Globals and constants variables.
 
-@unittest.skipUnless(pymontecarlo.settings.is_program_available('casino2'),
-                     'Casino 2 should be configured to run these tests')
+# TODO: Test if headless
 class TestCasino2Worker(TestCase):
 
     def setUp(self):
@@ -30,7 +29,7 @@ class TestCasino2Worker(TestCase):
         self.outputdir = self.create_temp_dir()
 
         self.options = self.create_basic_options()
-        self.options.program = pymontecarlo.settings.get_program('casino2')
+        self.options.program = Casino2Program()
 
         self.worker = Casino2Worker()
 
