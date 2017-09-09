@@ -41,16 +41,15 @@ ENTRY_POINTS = {'pymontecarlo.program':
 
                 'pymontecarlo.formats.document':
                 ['Casino2ProgramDocumentHandler = pymontecarlo_casino2.documenthandler:Casino2ProgramDocumentHandler'],
-
                 }
 
 setup(name="pyMonteCarlo-Casino2",
       version=versioneer.get_version(),
       url='https://github.com/pymontecarlo',
       description="Python interface for Monte Carlo simulation program Casino 2",
-      author="Hendrix Demers and Philippe T. Pinard",
-      author_email="hendrix.demers@mail.mcgill.ca and philippe.pinard@gmail.com",
-      license="GPL v3",
+      author="Philippe T. Pinard and Hendrix Demers",
+      author_email="philippe.pinard@gmail.com",
+      license="Apache License 2.0",
       classifiers=['Development Status :: 4 - Beta',
                    'Intended Audience :: End Users/Desktop',
                    'License :: OSI Approved :: GNU General Public License (GPL)',
