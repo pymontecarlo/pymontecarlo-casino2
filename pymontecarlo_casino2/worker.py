@@ -15,7 +15,7 @@ from distutils.dir_util import copy_tree
 
 # Local modules.
 from pymontecarlo.exceptions import WorkerError
-from pymontecarlo.program.worker import Worker, SubprocessWorkerMixin
+from pymontecarlo.options.program.worker import Worker, SubprocessWorkerMixin
 
 # Globals and constants variables.
 

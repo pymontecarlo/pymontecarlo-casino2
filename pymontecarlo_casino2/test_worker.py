@@ -30,6 +30,7 @@ class TestCasino2Worker(TestCase):
 
         self.options = self.create_basic_options()
         self.options.program = Casino2Program()
+        self.options.program.number_trajectories = 50
 
         self.worker = Casino2Worker()
 
@@ -38,7 +39,7 @@ class TestCasino2Worker(TestCase):
         simulation = Simulation(self.options)
         self.worker.run(self.token, simulation, self.outputdir)
 
-        self.assertEqual(2, len(simulation.results))
+        self.assertEqual(1, len(simulation.results))
 
     def testsubstrate(self):
         sample = SubstrateSample(Material.pure(39))

@@ -5,13 +5,12 @@
 # Third party modules.
 
 # Local modules.
-from pymontecarlo.program.validator import Validator
+from pymontecarlo.options.program.validator import Validator
 from pymontecarlo.options.particle import Particle
 from pymontecarlo.options.material import VACUUM
 from pymontecarlo.options.beam import GaussianBeam
 from pymontecarlo.options.sample import \
     SubstrateSample, HorizontalLayerSample, VerticalLayerSample
-from pymontecarlo.options.limit import ShowersLimit
 from pymontecarlo.options.model import \
     (ElasticCrossSectionModel, IonizationCrossSectionModel,
      IonizationPotentialModel, RandomNumberGeneratorModel,
@@ -33,17 +32,6 @@ class Casino2Validator(Validator):
 
         self.analysis_validate_methods[PhotonIntensityAnalysis] = self._validate_analysis_photonintensity
         self.analysis_validate_methods[KRatioAnalysis] = self._validate_analysis_kratio
-
-        self.limit_validate_methods[ShowersLimit] = self._validate_limit_showers
-
-        self.model_validate_methods[ElasticCrossSectionModel] = self._validate_model_valid_models
-        self.model_validate_methods[IonizationCrossSectionModel] = self._validate_model_valid_models
-        self.model_validate_methods[IonizationPotentialModel] = self._validate_model_valid_models
-        self.model_validate_methods[RandomNumberGeneratorModel] = self._validate_model_valid_models
-        self.model_validate_methods[DirectionCosineModel] = self._validate_model_valid_models
-        self.model_validate_methods[EnergyLossModel] = self._validate_model_valid_models
-        #self.model_validate_methods[MassAbsorptionCoefficientModel] = self._validate_model_valid_models
-        #TODO: Validate MAC from Casino2
 
         self.valid_models[ElasticCrossSectionModel] = \
             (ElasticCrossSectionModel.MOTT_CZYZEWSKI1990,
@@ -68,14 +56,35 @@ class Casino2Validator(Validator):
             (DirectionCosineModel.SOUM1979,
              DirectionCosineModel.DROUIN1996)
         self.valid_models[EnergyLossModel] = (EnergyLossModel.JOY_LUO1989,)
-        #self.valid_models[MassAbsorptionCoefficientModel] = ()
 
-        self.default_models[ElasticCrossSectionModel] = ElasticCrossSectionModel.MOTT_CZYZEWSKI1990
-        self.default_models[IonizationCrossSectionModel] = IonizationCrossSectionModel.CASNATI1982
-        self.default_models[IonizationPotentialModel] = IonizationPotentialModel.JOY_LUO1989
-        self.default_models[RandomNumberGeneratorModel] = RandomNumberGeneratorModel.PRESS1996_RAND1
-        self.default_models[DirectionCosineModel] = DirectionCosineModel.DROUIN1996
-        self.default_models[EnergyLossModel] = EnergyLossModel.JOY_LUO1989
+    def _validate_program(self, program, options, errors):
+        number_trajectories = self._validate_program_number_trajectories(program.number_trajectories, options, errors)
+        elastic_cross_section_model = self._validate_model(program.elastic_cross_section_model, options, errors)
+        ionization_cross_section_model = self._validate_model(program.ionization_cross_section_model, options, errors)
+        ionization_potential_model = self._validate_model(program.ionization_potential_model, options, errors)
+        random_number_generator_model = self._validate_model(program.random_number_generator_model, options, errors)
+        direction_cosine_model = self._validate_model(program.direction_cosine_model, options, errors)
+        energy_loss_model = self._validate_model(program.energy_loss_model, options, errors)
+        return type(program)(number_trajectories,
+                             elastic_cross_section_model,
+                             ionization_cross_section_model,
+                             ionization_potential_model,
+                             random_number_generator_model,
+                             direction_cosine_model,
+                             energy_loss_model)
+
+    def _validate_program_number_trajectories(self, number_trajectories, options, errors):
+        if number_trajectories < 25:
+            exc = ValueError('Number of showers ({0}) must be greater or equal to 25.'
+                             .format(number_trajectories))
+            errors.add(exc)
+
+        if number_trajectories > 1e9:
+            exc = ValueError('Number of showers ({0}) must be less than 1e9.'
+                             .format(number_trajectories))
+            errors.add(exc)
+
+        return number_trajectories
 
     def _validate_beam_base_energy_eV(self, energy_eV, options, errors):
         #NOTE: Casino does not seem to have an upper energy limit
@@ -159,19 +168,3 @@ class Casino2Validator(Validator):
             errors.add(exc)
 
         return layers
-
-    def _validate_limit_showers_number_trajectories(self, showers, options, errors):
-        number_trajectories = \
-            super()._validate_limit_showers_number_trajectories(showers, options, errors)
-
-        if number_trajectories < 25:
-            exc = ValueError('Number of showers ({0:d}) must be greater or equal to 25.'
-                             .format(number_trajectories))
-            errors.add(exc)
-
-        if number_trajectories > 1e9:
-            exc = ValueError('Number of showers ({0:d}) must be less than 1e9.'
-                             .format(number_trajectories))
-            errors.add(exc)
-
-        return number_trajectories

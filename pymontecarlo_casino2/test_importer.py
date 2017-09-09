@@ -12,8 +12,7 @@ import logging
 from pymontecarlo_casino2.importer import Casino2Importer
 
 from pymontecarlo.testcase import TestCase
-from pymontecarlo.results.photonintensity import \
-    EmittedPhotonIntensityResult, GeneratedPhotonIntensityResult
+from pymontecarlo.results.photonintensity import EmittedPhotonIntensityResult
 from pymontecarlo.simulation import Simulation
 
 # Globals and constants variables.
@@ -31,30 +30,18 @@ class TestCasino2Importer(TestCase):
         self.simulation = Simulation(self.options, results)
 
     def testskeleton(self):
-        self.assertEqual(2, len(self.simulation.results))
+        self.assertEqual(1, len(self.simulation.results))
 
     def test_import_analysis_photonintensity_emitted(self):
         result = self.simulation.find_result(EmittedPhotonIntensityResult)[0]
 
-        self.assertEqual(10, len(result))
+        self.assertEqual(29, len(result))
 
-        q = result[('Au', 'L3')]
-        self.assertAlmostEqual(8.0088, q.n, 4)
+        q = result[('Au', 'La')]
+        self.assertAlmostEqual(2.73255e-7, q.n, 13)
 
-        q = result[('Si', 'K')]
-        self.assertAlmostEqual(38.7659, q.n, 4)
-
-    def test_import_analysis_photonintensity_generated(self):
-        result = self.simulation.find_result(GeneratedPhotonIntensityResult)[0]
-
-        self.assertEqual(10, len(result))
-
-        q = result[('Au', 'L3')]
-        self.assertAlmostEqual(8.0270, q.n, 4)
-
-        q = result[('Si', 'K')]
-        self.assertAlmostEqual(46.8173, q.n, 4)
-
+        q = result[('Si', 'Ka1')]
+        self.assertAlmostEqual(1.6331941e-6, q.n, 13)
 
 if __name__ == '__main__': #pragma: no cover
     logging.getLogger().setLevel(logging.ERROR)
