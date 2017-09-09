@@ -17,6 +17,7 @@ from casinotools.fileformat.casino2.SimulationOptions import \
 
 # Local modules.
 from pymontecarlo_casino2.exporter import Casino2Exporter
+from pymontecarlo_casino2.program import Casino2Program
 
 from pymontecarlo.testcase import TestCase
 from pymontecarlo.options.material import Material
@@ -33,16 +34,16 @@ class TestCasino2Exporter(TestCase):
     def setUp(self):
         super().setUp()
 
-        self.e = Casino2Exporter()
-
         self.tmpdir = self.create_temp_dir()
 
-    def testexport(self):
-        # Options
-        options = self.create_basic_options()
+        self.e = Casino2Exporter()
 
+        self.options = self.create_basic_options()
+        self.options.program = Casino2Program()
+
+    def testexport(self):
         # Export
-        self.e.export(options, self.tmpdir)
+        self.e.export(self.options, self.tmpdir)
 
         # Test
         filepaths = glob.glob(os.path.join(self.tmpdir, '*.sim'))
@@ -54,36 +55,34 @@ class TestCasino2Exporter(TestCase):
         simops = simdata.getSimulationOptions()
         regionops = simdata.getRegionOptions()
 
-        self.assertAlmostEqual(options.beam.energy_keV, simops.getIncidentEnergy_keV(0), 4)
-        self.assertAlmostEqual(2.7947137 * options.beam.diameter_m * 1e9 / 2.0, simops.Beam_Diameter, 4) # FWHM
+        self.assertAlmostEqual(self.options.beam.energy_keV, simops.getIncidentEnergy_keV(0), 4)
+        self.assertAlmostEqual(2.7947137 * self.options.beam.diameter_m * 1e9 / 2.0, simops.Beam_Diameter, 4) # FWHM
         self.assertAlmostEqual(0.0, simops._positionStart_nm, 4)
 
         self.assertEqual(1, regionops.getNumberRegions())
         region = regionops.getRegion(0)
         elements = list(map(operator.attrgetter('Z'), region.getElements()))
-        self.assertAlmostEqual(options.sample.material.density_g_per_cm3, region.Rho, 4)
+        self.assertAlmostEqual(self.options.sample.material.density_g_per_cm3, region.Rho, 4)
         self.assertEqual('Copper', region.Name)
         self.assertEqual(1, len(elements))
         self.assertTrue(29 in elements)
 
-        self.assertEqual(100, simops.getNumberElectrons())
+        self.assertEqual(self.options.program.number_trajectories, simops.getNumberElectrons())
 
         self.assertTrue(simops.FEmissionRX)
 
     def testexport_grainboundaries(self):
         # Options
-        options = self.create_basic_options()
-
         mat1 = Material('Mat1', {79: 0.5, 47: 0.5}, 2.0)
         mat2 = Material('Mat2', {29: 0.5, 30: 0.5}, 3.0)
         mat3 = Material('Mat3', {13: 0.5, 14: 0.5}, 4.0)
 
         sample = VerticalLayerSample(mat1, mat2)
         sample.add_layer(mat3, 25e-9)
-        options.sample = sample
+        self.options.sample = sample
 
         # Export
-        self.e.export(options, self.tmpdir)
+        self.e.export(self.options, self.tmpdir)
 
         # Test
         filepaths = glob.glob(os.path.join(self.tmpdir, '*.sim'))
@@ -122,8 +121,6 @@ class TestCasino2Exporter(TestCase):
 
     def testexport_multilayers1(self):
         # Options
-        options = self.create_basic_options()
-
         mat1 = Material('Mat1', {79: 0.5, 47: 0.5}, 2.0)
         mat2 = Material('Mat2', {29: 0.5, 30: 0.5}, 3.0)
         mat3 = Material('Mat3', {13: 0.5, 14: 0.5}, 4.0)
@@ -131,10 +128,10 @@ class TestCasino2Exporter(TestCase):
         sample = HorizontalLayerSample(mat1)
         sample.add_layer(mat2, 25e-9)
         sample.add_layer(mat3, 55e-9)
-        options.sample = sample
+        self.options.sample = sample
 
         # Export
-        self.e.export(options, self.tmpdir)
+        self.e.export(self.options, self.tmpdir)
 
         # Test
         filepaths = glob.glob(os.path.join(self.tmpdir, '*.sim'))
@@ -173,8 +170,6 @@ class TestCasino2Exporter(TestCase):
 
     def testexport_multilayers2(self):
         # Options
-        options = self.create_basic_options()
-
         mat1 = Material('Mat1', {79: 0.5, 47: 0.5}, 2.0)
         mat2 = Material('Mat2', {29: 0.5, 30: 0.5}, 3.0)
         mat3 = Material('Mat3', {13: 0.5, 14: 0.5}, 4.0)
@@ -183,10 +178,10 @@ class TestCasino2Exporter(TestCase):
         sample.add_layer(mat1, 15e-9)
         sample.add_layer(mat2, 25e-9)
         sample.add_layer(mat3, 55e-9)
-        options.sample = sample
+        self.options.sample = sample
 
         # Export
-        self.e.export(options, self.tmpdir)
+        self.e.export(self.options, self.tmpdir)
 
         # Test
         filepaths = glob.glob(os.path.join(self.tmpdir, '*.sim'))
@@ -225,16 +220,14 @@ class TestCasino2Exporter(TestCase):
 
     def testexport_models(self):
         # Options
-        options = self.create_basic_options()
-
-        options.models.append(ElasticCrossSectionModel.MOTT_DROUIN1993)
-        options.models.append(IonizationCrossSectionModel.GRYZINSKY)
-        options.models.append(IonizationPotentialModel.HOVINGTON)
-        options.models.append(RandomNumberGeneratorModel.MERSENNE)
-        options.models.append(DirectionCosineModel.SOUM1979)
+        self.options.program.elastic_cross_section_model = ElasticCrossSectionModel.MOTT_DROUIN1993
+        self.options.program.ionization_cross_section_model = IonizationCrossSectionModel.GRYZINSKY
+        self.options.program.ionization_potential_model = IonizationPotentialModel.HOVINGTON
+        self.options.program.random_number_generator_model = RandomNumberGeneratorModel.MERSENNE
+        self.options.program.direction_cosine_model = DirectionCosineModel.SOUM1979
 
         # Export
-        self.e.export(options, self.tmpdir)
+        self.e.export(self.options, self.tmpdir)
 
         # Test
         filepaths = glob.glob(os.path.join(self.tmpdir, '*.sim'))

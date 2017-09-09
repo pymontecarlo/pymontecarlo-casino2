@@ -27,15 +27,13 @@ from casinotools.fileformat.casino2.SimulationOptions import \
 from pymontecarlo.options.beam import GaussianBeam
 from pymontecarlo.options.sample import  \
     SubstrateSample, HorizontalLayerSample, VerticalLayerSample
-from pymontecarlo.options.limit import ShowersLimit
 from pymontecarlo.options.detector import PhotonDetector
 from pymontecarlo.options.analysis import PhotonIntensityAnalysis, KRatioAnalysis
 from pymontecarlo.options.model import \
     (ElasticCrossSectionModel, IonizationCrossSectionModel,
      IonizationPotentialModel, RandomNumberGeneratorModel,
      DirectionCosineModel, EnergyLossModel)
-
-from pymontecarlo.program.exporter import Exporter
+from pymontecarlo.options.program.exporter import Exporter
 
 # Globals and constants variables.
 
@@ -51,13 +49,30 @@ def _setup_region_material(region, material):
     region.Rho = material.density_g_per_cm3
     region.Name = material.name
 
-def _find_model_type(lookup, model, errors):
-    if model not in lookup:
-        exc = ValueError('Unknown model: {0}'.format(model))
-        errors.add(exc)
-        return None
-
-    return lookup[model]
+ELASTIC_CROSS_SECTION_MODEL_LOOKUP = \
+    {ElasticCrossSectionModel.MOTT_CZYZEWSKI1990: CROSS_SECTION_MOTT_JOY,
+     ElasticCrossSectionModel.MOTT_DROUIN1993: CROSS_SECTION_MOTT_EQUATION,
+     ElasticCrossSectionModel.MOTT_BROWNING1994: CROSS_SECTION_MOTT_BROWNING,
+     ElasticCrossSectionModel.RUTHERFORD: CROSS_SECTION_MOTT_RUTHERFORD}
+IONIZATION_CROSS_SECTION_MODEL_LOOKUP = \
+    {IonizationCrossSectionModel.GAUVIN: IONIZATION_CROSS_SECTION_GAUVIN,
+     IonizationCrossSectionModel.POUCHOU1996: IONIZATION_CROSS_SECTION_POUCHOU,
+     IonizationCrossSectionModel.BROWN_POWELL: IONIZATION_CROSS_SECTION_BROWN_POWELL,
+     IonizationCrossSectionModel.CASNATI1982: IONIZATION_CROSS_SECTION_CASNATI,
+     IonizationCrossSectionModel.GRYZINSKY: IONIZATION_CROSS_SECTION_GRYZINSKI,
+     IonizationCrossSectionModel.JAKOBY: IONIZATION_CROSS_SECTION_JAKOBY}
+IONIZATION_POTENTIAL_MODEL_LOOKUP = \
+    {IonizationPotentialModel.JOY_LUO1989: IONIZATION_POTENTIAL_JOY,
+     IonizationPotentialModel.BERGER_SELTZER1983: IONIZATION_POTENTIAL_BERGER,
+     IonizationPotentialModel.HOVINGTON: IONIZATION_POTENTIAL_HOVINGTON}
+RANDOM_NUMBER_GENERATOR_MODEL_LOOKUP = \
+    {RandomNumberGeneratorModel.PRESS1996_RAND1: RANDOM_NUMBER_GENERATOR_PRESS_ET_AL,
+     RandomNumberGeneratorModel.MERSENNE: RANDOM_NUMBER_GENERATOR_MERSENNE_TWISTER}
+DIRECTION_COSINES_MODEL_LOOKUP = \
+    {DirectionCosineModel.SOUM1979: DIRECTION_COSINES_SOUM,
+     DirectionCosineModel.DROUIN1996: DIRECTION_COSINES_DROUIN}
+ENERGY_LOSS_MODEL_LOOKUP = \
+    {EnergyLossModel.JOY_LUO1989: ENERGY_LOSS_JOY_LUO}
 
 class Casino2Exporter(Exporter):
 
@@ -76,16 +91,6 @@ class Casino2Exporter(Exporter):
 
         self.analysis_export_methods[PhotonIntensityAnalysis] = self._export_analysis_photonintensity
         self.analysis_export_methods[KRatioAnalysis] = self._export_analysis_kratio
-
-        self.limit_export_methods[ShowersLimit] = self._export_limit_showers
-
-        self.model_export_methods[ElasticCrossSectionModel] = self._export_model_elasticcrosssection
-        self.model_export_methods[IonizationCrossSectionModel] = self._export_model_ionizationcrosssection
-        self.model_export_methods[IonizationPotentialModel] = self._export_model_ionizationpotential
-        self.model_export_methods[RandomNumberGeneratorModel] = self._export_model_randomnumbergenerator
-        self.model_export_methods[DirectionCosineModel] = self._export_model_directioncosine
-        self.model_export_methods[EnergyLossModel] = self._export_model_energyloss
-        #self.model_export_methods[MassAbsorptionCoefficientModel] = self._export_model_massabsorptioncoefficient
 
     def _export(self, options, dirpath, errors):
         casfile = File()
@@ -143,6 +148,16 @@ class Casino2Exporter(Exporter):
             exc = IOError('Unknown geometry: {0}'.format(sample))
             errors.add(exc)
             return None
+
+    def _export_program(self, program, options, errors, simdata, simops):
+        simops.setNumberElectrons(program.number_trajectories)
+
+        simops.setElasticCrossSectionType(ELASTIC_CROSS_SECTION_MODEL_LOOKUP[program.elastic_cross_section_model])
+        simops.setIonizationCrossSectionType(IONIZATION_CROSS_SECTION_MODEL_LOOKUP[program.ionization_cross_section_model])
+        simops.setIonizationPotentialType(IONIZATION_POTENTIAL_MODEL_LOOKUP[program.ionization_potential_model])
+        simops.setRandomNumberGeneratorType(RANDOM_NUMBER_GENERATOR_MODEL_LOOKUP[program.random_number_generator_model])
+        simops.setDirectionCosines(DIRECTION_COSINES_MODEL_LOOKUP[program.direction_cosine_model])
+        simops.setEnergyLossType(ENERGY_LOSS_MODEL_LOOKUP[program.energy_loss_model])
 
     def _export_beam_gaussian(self, beam, options, errors, simdata, simops):
         simops.setIncidentEnergy_keV(beam.energy_eV / 1000.0) # keV
@@ -244,90 +259,3 @@ class Casino2Exporter(Exporter):
 
     def _export_analysis_kratio(self, analysis, options, errors, simdata, simops):
         pass
-
-    def _export_limit_showers(self, limit, options, errors, simdata, simops):
-        simops.setNumberElectrons(limit.number_trajectories)
-
-    def _export_model_elasticcrosssection(self, model, options, errors, simdata, simops):
-        if model == ElasticCrossSectionModel.MOTT_CZYZEWSKI1990:
-            value = CROSS_SECTION_MOTT_JOY
-        elif model == ElasticCrossSectionModel.MOTT_DROUIN1993:
-            value = CROSS_SECTION_MOTT_EQUATION
-        elif model == ElasticCrossSectionModel.MOTT_BROWNING1994:
-            value = CROSS_SECTION_MOTT_BROWNING
-        elif model == ElasticCrossSectionModel.RUTHERFORD:
-            value = CROSS_SECTION_MOTT_RUTHERFORD
-        else:
-            exc = ValueError('Unknown model: {0}'.format(model))
-            errors.add(exc)
-            return
-
-        simops.setElasticCrossSectionType(value)
-
-    def _export_model_ionizationcrosssection(self, model, options, errors, simdata, simops):
-        if model == IonizationCrossSectionModel.GAUVIN:
-            value = IONIZATION_CROSS_SECTION_GAUVIN
-        elif model == IonizationCrossSectionModel.POUCHOU1996:
-            value = IONIZATION_CROSS_SECTION_POUCHOU
-        elif model == IonizationCrossSectionModel.BROWN_POWELL:
-            value = IONIZATION_CROSS_SECTION_BROWN_POWELL
-        elif model == IonizationCrossSectionModel.CASNATI1982:
-            value = IONIZATION_CROSS_SECTION_CASNATI
-        elif model == IonizationCrossSectionModel.GRYZINSKY:
-            value = IONIZATION_CROSS_SECTION_GRYZINSKI
-        elif model == IonizationCrossSectionModel.JAKOBY:
-            value = IONIZATION_CROSS_SECTION_JAKOBY
-        else:
-            exc = ValueError('Unknown model: {0}'.format(model))
-            errors.add(exc)
-            return
-
-        simops.setIonizationCrossSectionType(value)
-
-    def _export_model_ionizationpotential(self, model, options, errors, simdata, simops):
-        if model == IonizationPotentialModel.JOY_LUO1989:
-            value = IONIZATION_POTENTIAL_JOY
-        elif model == IonizationPotentialModel.BERGER_SELTZER1983:
-            value = IONIZATION_POTENTIAL_BERGER
-        elif model == IonizationPotentialModel.HOVINGTON:
-            value = IONIZATION_POTENTIAL_HOVINGTON
-        else:
-            exc = ValueError('Unknown model: {0}'.format(model))
-            errors.add(exc)
-            return
-
-        simops.setIonizationPotentialType(value)
-
-    def _export_model_randomnumbergenerator(self, model, options, errors, simdata, simops):
-        if model == RandomNumberGeneratorModel.PRESS1996_RAND1:
-            value = RANDOM_NUMBER_GENERATOR_PRESS_ET_AL
-        elif model == RandomNumberGeneratorModel.MERSENNE:
-            value = RANDOM_NUMBER_GENERATOR_MERSENNE_TWISTER
-        else:
-            exc = ValueError('Unknown model: {0}'.format(model))
-            errors.add(exc)
-            return
-
-        simops.setRandomNumberGeneratorType(value)
-
-    def _export_model_directioncosine(self, model, options, errors, simdata, simops):
-        if model == DirectionCosineModel.SOUM1979:
-            value = DIRECTION_COSINES_SOUM
-        elif model == DirectionCosineModel.DROUIN1996:
-            value = DIRECTION_COSINES_DROUIN
-        else:
-            exc = ValueError('Unknown model: {0}'.format(model))
-            errors.add(exc)
-            return
-
-        simops.setDirectionCosines(value)
-
-    def _export_model_energyloss(self, model, options, errors, simdata, simops):
-        if model == EnergyLossModel.JOY_LUO1989:
-            value = ENERGY_LOSS_JOY_LUO
-        else:
-            exc = ValueError('Unknown model: {0}'.format(model))
-            errors.add(exc)
-            return
-
-        simops.setEnergyLossType(value)

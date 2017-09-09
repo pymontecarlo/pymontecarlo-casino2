@@ -34,7 +34,15 @@ ENTRY_POINTS = {'pymontecarlo.program':
                 ['casino2 = pymontecarlo_casino2.program:Casino2Program'],
 
                 'pymontecarlo.formats.hdf5':
-                ['Casino2ProgramHDF5Handler = pymontecarlo_casino2.formats.hdf5.program:Casino2ProgramHDF5Handler']}
+                ['Casino2ProgramHDF5Handler = pymontecarlo_casino2.hdf5handler:Casino2ProgramHDF5Handler'],
+
+                'pymontecarlo.formats.series':
+                ['Casino2ProgramSeriesHandler = pymontecarlo_casino2.serieshandler:Casino2ProgramSeriesHandler'],
+
+                'pymontecarlo.formats.document':
+                ['Casino2ProgramDocumentHandler = pymontecarlo_casino2.documenthandler:Casino2ProgramDocumentHandler'],
+
+                }
 
 setup(name="pyMonteCarlo-Casino2",
       version=versioneer.get_version(),
