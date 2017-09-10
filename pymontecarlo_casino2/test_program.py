@@ -9,7 +9,9 @@ import logging
 
 # Local modules.
 from pymontecarlo.testcase import TestCase
-from pymontecarlo_casino2.program import Casino2Program
+from pymontecarlo.options.model.elastic_cross_section import ElasticCrossSectionModel
+
+from pymontecarlo_casino2.program import Casino2Program, Casino2ProgramBuilder
 
 # Globals and constants variables.
 
@@ -22,6 +24,22 @@ class TestCasino2Program(TestCase):
 
     def testname(self):
         self.assertEqual('Casino 2', self.program.name)
+
+class TestCasino2ProgramBuilder(TestCase):
+
+    def testbuild(self):
+        b = Casino2ProgramBuilder()
+        programs = b.build()
+        self.assertEqual(1, len(programs))
+
+    def testbuild2(self):
+        b = Casino2ProgramBuilder()
+        b.add_number_trajectories(100)
+        b.add_number_trajectories(200)
+        b.add_elastic_cross_section_model(ElasticCrossSectionModel.RUTHERFORD)
+        b.add_elastic_cross_section_model(ElasticCrossSectionModel.MOTT_CZYZEWSKI1990)
+        programs = b.build()
+        self.assertEqual(4, len(programs))
 
 if __name__ == '__main__': #pragma: no cover
     logging.getLogger().setLevel(logging.DEBUG)

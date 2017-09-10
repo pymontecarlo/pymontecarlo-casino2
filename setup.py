@@ -30,10 +30,7 @@ EXTRAS_REQUIRE = {'develop': ['nose', 'coverage']}
 
 CMDCLASS = versioneer.get_cmdclass()
 
-ENTRY_POINTS = {'pymontecarlo.program':
-                ['casino2 = pymontecarlo_casino2.program:Casino2Program'],
-
-                'pymontecarlo.formats.hdf5':
+ENTRY_POINTS = {'pymontecarlo.formats.hdf5':
                 ['Casino2ProgramHDF5Handler = pymontecarlo_casino2.hdf5handler:Casino2ProgramHDF5Handler'],
 
                 'pymontecarlo.formats.series':
