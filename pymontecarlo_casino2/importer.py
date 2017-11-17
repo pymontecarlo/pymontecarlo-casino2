@@ -17,7 +17,6 @@ import pyxray
 from pymontecarlo.options.program.importer import Importer
 from pymontecarlo.options.analysis import PhotonIntensityAnalysis, KRatioAnalysis
 from pymontecarlo.results.photonintensity import EmittedPhotonIntensityResultBuilder
-from pymontecarlo.util.xrayline import XrayLine
 
 from pymontecarlo_casino2.exporter import Casino2Exporter
 
@@ -64,7 +63,7 @@ class Casino2Importer(Importer):
                     continue
 
                 transition = LINE_LOOKUP[line]
-                xrayline = XrayLine(z, transition)
+                xrayline = pyxray.XrayLine(z, transition)
                 value = intensities[z][line]
                 error = 0.0
                 emitted_builder.add_intensity(xrayline, value, error)
