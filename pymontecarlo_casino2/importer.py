@@ -63,7 +63,7 @@ class Casino2Importer(Importer):
                     continue
 
                 transition = LINE_LOOKUP[line]
-                xrayline = pyxray.XrayLine(z, transition)
+                xrayline = pyxray.xray_line(z, transition)
                 value = intensities[z][line]
                 error = 0.0
                 emitted_builder.add_intensity(xrayline, value, error)
