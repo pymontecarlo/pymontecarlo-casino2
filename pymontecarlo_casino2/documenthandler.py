@@ -5,13 +5,13 @@
 # Third party modules.
 
 # Local modules.
-from pymontecarlo.formats.document.options.program.base import ProgramDocumentHandler
+from pymontecarlo.formats.document.options.program.base import ProgramDocumentHandlerBase
 
 from pymontecarlo_casino2.program import Casino2Program
 
 # Globals and constants variables.
 
-class Casino2ProgramDocumentHandler(ProgramDocumentHandler):
+class Casino2ProgramDocumentHandler(ProgramDocumentHandlerBase):
 
     def convert(self, program, builder):
         super().convert(program, builder)

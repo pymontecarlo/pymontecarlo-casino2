@@ -1,5 +1,5 @@
 """
-Exporter to CAS file
+ExporterBase to CAS file
 """
 
 # Standard library modules.
@@ -33,7 +33,7 @@ from pymontecarlo.options.model import \
     (ElasticCrossSectionModel, IonizationCrossSectionModel,
      IonizationPotentialModel, RandomNumberGeneratorModel,
      DirectionCosineModel, EnergyLossModel)
-from pymontecarlo.options.program.exporter import Exporter
+from pymontecarlo.options.program.exporter import ExporterBase
 
 # Globals and constants variables.
 
@@ -74,7 +74,7 @@ DIRECTION_COSINES_MODEL_LOOKUP = \
 ENERGY_LOSS_MODEL_LOOKUP = \
     {EnergyLossModel.JOY_LUO1989: ENERGY_LOSS_JOY_LUO}
 
-class Casino2Exporter(Exporter):
+class Casino2Exporter(ExporterBase):
 
     DEFAULT_SIM_FILENAME = 'options.sim'
 

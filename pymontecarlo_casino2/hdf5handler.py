@@ -5,18 +5,18 @@
 # Third party modules.
 
 # Local modules.
-from pymontecarlo.formats.hdf5.options.program.base import ProgramHDF5Handler
+from pymontecarlo.formats.hdf5.options.program.base import ProgramHDF5HandlerBase
 
 from pymontecarlo_casino2.program import Casino2Program
 
 # Globals and constants variables.
 
-class Casino2ProgramHDF5Handler(ProgramHDF5Handler):
+class Casino2ProgramHDF5Handler(ProgramHDF5HandlerBase):
 
     ATTR_NUMBER_TRAJECTORIES = 'number'
     ATTR_ELASTIC_CROSS_SECTION_MODEL = 'elastic_cross_section_model'
     ATTR_IONIZATION_CROSS_SECTION_MODEL = 'ionization_cross_section_model'
-    ATTR_IONIZATION_POTENTIAL_MODEL = 'ionization_cross_section_model'
+    ATTR_IONIZATION_POTENTIAL_MODEL = 'ionization_potential_model'
     ATTR_RANDOM_NUMBER_GENERATOR_MODEL = 'random_number_generator_model'
     ATTR_DIRECTION_COSINE_MODEL = 'direction_cosine_model'
     ATTR_ENERGY_LOSS_MODEL = 'energy_loss_model'

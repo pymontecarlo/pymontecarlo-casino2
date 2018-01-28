@@ -15,11 +15,11 @@ from distutils.dir_util import copy_tree
 
 # Local modules.
 from pymontecarlo.exceptions import WorkerError
-from pymontecarlo.options.program.worker import Worker, SubprocessWorkerMixin
+from pymontecarlo.options.program.worker import WorkerBase, SubprocessWorkerMixin
 
 # Globals and constants variables.
 
-class Casino2Worker(Worker, SubprocessWorkerMixin):
+class Casino2Worker(WorkerBase, SubprocessWorkerMixin):
 
     def run(self, token, simulation, outputdir):
         options = simulation.options
