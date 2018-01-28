@@ -14,7 +14,7 @@ from casinotools.fileformat.casino2.line import \
 import pyxray
 
 # Local modules.
-from pymontecarlo.options.program.importer import Importer
+from pymontecarlo.options.program.importer import ImporterBase
 from pymontecarlo.options.analysis import PhotonIntensityAnalysis, KRatioAnalysis
 from pymontecarlo.results.photonintensity import EmittedPhotonIntensityResultBuilder
 
@@ -32,7 +32,7 @@ LINE_LOOKUP = {ATOMLINE_KA1: pyxray.xray_transition('Ka1'),
                ATOMLINE_LG: pyxray.xray_transition('Lg1'),
                ATOMLINE_MA: pyxray.xray_transitionset('Ma')}
 
-class Casino2Importer(Importer):
+class Casino2Importer(ImporterBase):
 
     DEFAULT_CAS_FILENAME = os.path.splitext(Casino2Exporter.DEFAULT_SIM_FILENAME)[0] + '.cas'
 

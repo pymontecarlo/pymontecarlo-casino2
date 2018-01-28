@@ -10,7 +10,7 @@ import itertools
 # Third party modules.
 
 # Local modules.
-from pymontecarlo.options.program.base import Program, ProgramBuilder
+from pymontecarlo.options.program.base import ProgramBase, ProgramBuilderBase
 from pymontecarlo.util.sysutil import is_64bits
 from pymontecarlo.options.model.elastic_cross_section import ElasticCrossSectionModel
 from pymontecarlo.options.model.ionization_cross_section import IonizationCrossSectionModel
@@ -27,7 +27,7 @@ from pymontecarlo_casino2.worker import Casino2Worker
 
 # Globals and constants variables.
 
-class Casino2Program(Program):
+class Casino2Program(ProgramBase):
 
     def __init__(self, number_trajectories=10000,
                  elastic_cross_section_model=ElasticCrossSectionModel.MOTT_CZYZEWSKI1990,
@@ -96,7 +96,7 @@ class Casino2Program(Program):
 
         return filepath
 
-class Casino2ProgramBuilder(ProgramBuilder):
+class Casino2ProgramBuilder(ProgramBuilderBase):
 
     def __init__(self):
         self.number_trajectories = set()

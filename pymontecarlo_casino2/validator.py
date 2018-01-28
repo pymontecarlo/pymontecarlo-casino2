@@ -5,7 +5,7 @@
 # Third party modules.
 
 # Local modules.
-from pymontecarlo.options.program.validator import Validator
+from pymontecarlo.options.program.validator import ValidatorBase
 from pymontecarlo.options.particle import Particle
 from pymontecarlo.options.material import VACUUM
 from pymontecarlo.options.beam import GaussianBeam
@@ -19,7 +19,7 @@ from pymontecarlo.options.analysis import PhotonIntensityAnalysis, KRatioAnalysi
 
 # Globals and constants variables.
 
-class Casino2Validator(Validator):
+class Casino2Validator(ValidatorBase):
 
     def __init__(self):
         super().__init__()
