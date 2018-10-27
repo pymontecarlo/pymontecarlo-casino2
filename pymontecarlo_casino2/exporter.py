@@ -15,7 +15,7 @@ from casinotools.fileformat.casino2.SimulationOptions import \
     (DIRECTION_COSINES_SOUM, DIRECTION_COSINES_DROUIN,
      CROSS_SECTION_MOTT_JOY, CROSS_SECTION_MOTT_EQUATION,
      CROSS_SECTION_MOTT_BROWNING, CROSS_SECTION_MOTT_RUTHERFORD,
-     IONIZATION_CROSS_SECTION_GAUVIN, IONIZATION_CROSS_SECTION_POUCHOU,
+     IONIZATION_CROSS_SECTION_POUCHOU,
      IONIZATION_CROSS_SECTION_BROWN_POWELL, IONIZATION_CROSS_SECTION_CASNATI,
      IONIZATION_CROSS_SECTION_GRYZINSKI, IONIZATION_CROSS_SECTION_JAKOBY,
      IONIZATION_POTENTIAL_JOY, IONIZATION_POTENTIAL_BERGER,
@@ -54,13 +54,15 @@ ELASTIC_CROSS_SECTION_MODEL_LOOKUP = \
      ElasticCrossSectionModel.MOTT_DROUIN1993: CROSS_SECTION_MOTT_EQUATION,
      ElasticCrossSectionModel.MOTT_BROWNING1994: CROSS_SECTION_MOTT_BROWNING,
      ElasticCrossSectionModel.RUTHERFORD: CROSS_SECTION_MOTT_RUTHERFORD}
+
+# Casino 2.5.1 seems to have removed Gauvin ionization cross section and the
+# first ionization cross section is Pouchou
 IONIZATION_CROSS_SECTION_MODEL_LOOKUP = \
-    {IonizationCrossSectionModel.GAUVIN: IONIZATION_CROSS_SECTION_GAUVIN,
-     IonizationCrossSectionModel.POUCHOU1996: IONIZATION_CROSS_SECTION_POUCHOU,
-     IonizationCrossSectionModel.BROWN_POWELL: IONIZATION_CROSS_SECTION_BROWN_POWELL,
-     IonizationCrossSectionModel.CASNATI1982: IONIZATION_CROSS_SECTION_CASNATI,
-     IonizationCrossSectionModel.GRYZINSKY: IONIZATION_CROSS_SECTION_GRYZINSKI,
-     IonizationCrossSectionModel.JAKOBY: IONIZATION_CROSS_SECTION_JAKOBY}
+    {IonizationCrossSectionModel.POUCHOU1996: IONIZATION_CROSS_SECTION_POUCHOU - 1,
+     IonizationCrossSectionModel.BROWN_POWELL: IONIZATION_CROSS_SECTION_BROWN_POWELL - 1,
+     IonizationCrossSectionModel.CASNATI1982: IONIZATION_CROSS_SECTION_CASNATI - 1,
+     IonizationCrossSectionModel.GRYZINSKY: IONIZATION_CROSS_SECTION_GRYZINSKI - 1,
+     IonizationCrossSectionModel.JAKOBY: IONIZATION_CROSS_SECTION_JAKOBY - 1}
 IONIZATION_POTENTIAL_MODEL_LOOKUP = \
     {IonizationPotentialModel.JOY_LUO1989: IONIZATION_POTENTIAL_JOY,
      IonizationPotentialModel.BERGER_SELTZER1983: IONIZATION_POTENTIAL_BERGER,
@@ -202,6 +204,9 @@ class Casino2Exporter(ExporterBase):
             parameters[0] = abs(zmin_m) * 1e9
             parameters[2] = parameters[0] + 10.0
             region.setParameters(parameters)
+        else:
+            zmin_m, _zmax_m = zpositions_m[-1]
+            simops.setTotalThickness_nm(abs(zmin_m) * 1e9)
 
     def _export_sample_verticallayers(self, sample, options, errors, simdata, simops):
         regionops = simdata.getRegionOptions()
@@ -249,7 +254,7 @@ class Casino2Exporter(ExporterBase):
         simops.FEmissionRX = 1 # Simulate x-rays
 
     def _export_analyses(self, analyses, options, errors, simdata, simops):
-        simops.RangeFinder = 3 # Fixed range
+        simops.RangeFinder = 0 # Simulated range
         simops.Memory_Keep = 0 # Do not save trajectories
 
         super()._export_analyses(analyses, options, errors, simdata, simops)

@@ -240,7 +240,7 @@ class TestCasino2Exporter(TestCase):
 
         self.assertEqual(CROSS_SECTION_MOTT_EQUATION, simops.getTotalElectronElasticCrossSection())
         self.assertEqual(CROSS_SECTION_MOTT_EQUATION, simops.getPartialElectronElasticCrossSection())
-        self.assertEqual(IONIZATION_CROSS_SECTION_GRYZINSKI, simops.getIonizationCrossSectionType())
+        self.assertEqual(IONIZATION_CROSS_SECTION_GRYZINSKI - 1, simops.getIonizationCrossSectionType())
         self.assertEqual(IONIZATION_POTENTIAL_HOVINGTON, simops.getIonizationPotentialType())
         self.assertEqual(DIRECTION_COSINES_SOUM, simops.getDirectionCosines())
         self.assertEqual(ENERGY_LOSS_JOY_LUO, simops.getEnergyLossType())
