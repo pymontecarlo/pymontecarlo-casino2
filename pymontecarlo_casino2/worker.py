@@ -53,9 +53,10 @@ class Casino2Worker(WorkerBase, SubprocessWorkerMixin):
 
             token.update(0.1, 'Running Casino 2')
             stdout = subprocess.PIPE
+            stderr = subprocess.PIPE
             cwd = executable_dir
 
-            with self._create_process(args, stdout=stdout, cwd=cwd) as process:
+            with self._create_process(args, stdout=stdout, stderr=stderr, cwd=cwd) as process:
                 self._wait_process(process, token)
 
             # Import results
