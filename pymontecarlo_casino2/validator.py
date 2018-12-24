@@ -57,14 +57,14 @@ class Casino2Validator(ValidatorBase):
              DirectionCosineModel.DROUIN1996)
         self.valid_models[EnergyLossModel] = (EnergyLossModel.JOY_LUO1989,)
 
-    def _validate_program(self, program, options, errors):
-        number_trajectories = self._validate_program_number_trajectories(program.number_trajectories, options, errors)
-        elastic_cross_section_model = self._validate_model(program.elastic_cross_section_model, options, errors)
-        ionization_cross_section_model = self._validate_model(program.ionization_cross_section_model, options, errors)
-        ionization_potential_model = self._validate_model(program.ionization_potential_model, options, errors)
-        random_number_generator_model = self._validate_model(program.random_number_generator_model, options, errors)
-        direction_cosine_model = self._validate_model(program.direction_cosine_model, options, errors)
-        energy_loss_model = self._validate_model(program.energy_loss_model, options, errors)
+    def _validate_program(self, program, options, errors, warnings):
+        number_trajectories = self._validate_program_number_trajectories(program.number_trajectories, options, errors, warnings)
+        elastic_cross_section_model = self._validate_model(program.elastic_cross_section_model, options, errors, warnings)
+        ionization_cross_section_model = self._validate_model(program.ionization_cross_section_model, options, errors, warnings)
+        ionization_potential_model = self._validate_model(program.ionization_potential_model, options, errors, warnings)
+        random_number_generator_model = self._validate_model(program.random_number_generator_model, options, errors, warnings)
+        direction_cosine_model = self._validate_model(program.direction_cosine_model, options, errors, warnings)
+        energy_loss_model = self._validate_model(program.energy_loss_model, options, errors, warnings)
         return type(program)(number_trajectories,
                              elastic_cross_section_model,
                              ionization_cross_section_model,
@@ -73,7 +73,7 @@ class Casino2Validator(ValidatorBase):
                              direction_cosine_model,
                              energy_loss_model)
 
-    def _validate_program_number_trajectories(self, number_trajectories, options, errors):
+    def _validate_program_number_trajectories(self, number_trajectories, options, errors, warnings):
         if number_trajectories < 25:
             exc = ValueError('Number of showers ({0}) must be greater or equal to 25.'
                              .format(number_trajectories))
@@ -86,12 +86,12 @@ class Casino2Validator(ValidatorBase):
 
         return number_trajectories
 
-    def _validate_beam_base_energy_eV(self, energy_eV, options, errors):
+    def _validate_beam_base_energy_eV(self, energy_eV, options, errors, warnings):
         #NOTE: Casino does not seem to have an upper energy limit
-        return super()._validate_beam_base_energy_eV(energy_eV, options, errors)
+        return super()._validate_beam_base_energy_eV(energy_eV, options, errors, warnings)
 
-    def _validate_beam_base_particle(self, particle, options, errors):
-        particle = super()._validate_beam_base_particle(particle, options, errors)
+    def _validate_beam_base_particle(self, particle, options, errors, warnings):
+        particle = super()._validate_beam_base_particle(particle, options, errors, warnings)
 
         if particle is not Particle.ELECTRON:
             exc = ValueError('Particle {0} is not supported. Only ELECTRON.'
@@ -100,8 +100,8 @@ class Casino2Validator(ValidatorBase):
 
         return particle
 
-    def _validate_beam_gaussian_y0_m(self, y0_m, options, errors):
-        y0_m = super()._validate_beam_gaussian_y0_m(y0_m, options, errors)
+    def _validate_beam_gaussian_y0_m(self, y0_m, options, errors, warnings):
+        y0_m = super()._validate_beam_gaussian_y0_m(y0_m, options, errors, warnings)
 
         if y0_m != 0.0:
             exc = ValueError("Beam initial y position ({0:g}) must be 0.0"
@@ -110,8 +110,8 @@ class Casino2Validator(ValidatorBase):
 
         return y0_m
 
-    def _validate_beam_gaussian_azimuth_rad(self, azimuth_rad, options, errors):
-        azimuth_rad = super()._validate_beam_gaussian_azimuth_rad(azimuth_rad, options, errors)
+    def _validate_beam_gaussian_azimuth_rad(self, azimuth_rad, options, errors, warnings):
+        azimuth_rad = super()._validate_beam_gaussian_azimuth_rad(azimuth_rad, options, errors, warnings)
 
         if azimuth_rad != 0.0:
             exc = ValueError('Beam azimuth angle ({0:g}) must be 0.0'
@@ -120,8 +120,8 @@ class Casino2Validator(ValidatorBase):
 
         return azimuth_rad
 
-    def _validate_sample_base_tilt_rad(self, tilt_rad, options, errors):
-        tilt_rad = super()._validate_sample_base_tilt_rad(tilt_rad, options, errors)
+    def _validate_sample_base_tilt_rad(self, tilt_rad, options, errors, warnings):
+        tilt_rad = super()._validate_sample_base_tilt_rad(tilt_rad, options, errors, warnings)
 
         if tilt_rad != 0.0:
             exc = ValueError('Sample tilt is not supported.')
@@ -129,9 +129,9 @@ class Casino2Validator(ValidatorBase):
 
         return tilt_rad
 
-    def _validate_sample_base_rotation_rad(self, rotation_rad, options, errors):
+    def _validate_sample_base_rotation_rad(self, rotation_rad, options, errors, warnings):
         rotation_rad = \
-            super()._validate_sample_base_rotation_rad(rotation_rad, options, errors)
+            super()._validate_sample_base_rotation_rad(rotation_rad, options, errors, warnings)
 
         if rotation_rad != 0.0:
             exc = ValueError('Sample rotation is not supported.')
@@ -139,8 +139,8 @@ class Casino2Validator(ValidatorBase):
 
         return rotation_rad
 
-    def _validate_sample_layered_layers(self, layers, options, errors):
-        layers = super()._validate_sample_layered_layers(layers, options, errors)
+    def _validate_sample_layered_layers(self, layers, options, errors, warnings):
+        layers = super()._validate_sample_layered_layers(layers, options, errors, warnings)
 
         for layer in layers:
             if layer.material is VACUUM:
@@ -149,8 +149,8 @@ class Casino2Validator(ValidatorBase):
 
         return layers
 
-    def _validate_sample_horizontallayers_layers(self, layers, options, errors):
-        layers = super()._validate_sample_horizontallayers_layers(layers, options, errors)
+    def _validate_sample_horizontallayers_layers(self, layers, options, errors, warnings):
+        layers = super()._validate_sample_horizontallayers_layers(layers, options, errors, warnings)
 
         if len(layers) > 5:
             exc = ValueError('Up to 5 layers is supported. {0:d} defined.'
@@ -159,8 +159,8 @@ class Casino2Validator(ValidatorBase):
 
         return layers
 
-    def _validate_sample_verticallayers_layers(self, layers, options, errors):
-        layers = super()._validate_sample_verticallayers_layers(layers, options, errors)
+    def _validate_sample_verticallayers_layers(self, layers, options, errors, warnings):
+        layers = super()._validate_sample_verticallayers_layers(layers, options, errors, warnings)
 
         if len(layers) > 11:
             exc = ValueError('Up to 11 layers is supported. {0:d} defined.'

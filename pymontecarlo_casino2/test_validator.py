@@ -31,17 +31,21 @@ class TestCasino2Validator(TestCase):
         self.options.program.number_trajectories = 0
 
         errors = set()
-        self.validator._validate_options(self.options, errors)
+        warnings = set()
+        self.validator._validate_options(self.options, errors, warnings)
 
         self.assertEqual(1, len(errors))
+        self.assertEqual(0, len(warnings))
 
     def test_validate_program_number_trajectories2(self):
         self.options.program.number_trajectories = 1e10
 
         errors = set()
-        self.validator._validate_options(self.options, errors)
+        warnings = set()
+        self.validator._validate_options(self.options, errors, warnings)
 
         self.assertEqual(1, len(errors))
+        self.assertEqual(0, len(warnings))
 
 if __name__ == '__main__': #pragma: no cover
     logging.getLogger().setLevel(logging.DEBUG)
