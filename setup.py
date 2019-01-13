@@ -26,7 +26,7 @@ for root, _dirnames, filenames in os.walk(casinodir):
         PACKAGE_DATA['pymontecarlo_casino2'].append(relpath)
 
 INSTALL_REQUIRES = ['pymontecarlo', 'pycasinotools']
-EXTRAS_REQUIRE = {'develop': ['nose', 'coverage']}
+EXTRAS_REQUIRE = {'develop': ['nose', 'coverage', 'pytest', 'pytest-cov', 'pytest-asyncio']}
 
 CMDCLASS = versioneer.get_cmdclass()
 
