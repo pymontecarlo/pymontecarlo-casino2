@@ -103,8 +103,8 @@ class Casino2Program(ProgramBase):
                                   .format(filepath))
 
         if os.path.getsize(filepath) < 1000000: # < 1Mb
-            return ProgramNotFound('{} is not the right file. Maybe Git LFS was not run.'
-                                   .format(filepath))
+            raise ProgramNotFound('{} is not the right file. Maybe Git LFS was not run.'
+                                  .format(filepath))
 
         return filepath
 
