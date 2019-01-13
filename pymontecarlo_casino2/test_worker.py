@@ -2,7 +2,6 @@
 """ """
 
 # Standard library modules.
-import os
 import asyncio
 
 # Third party modules.
@@ -15,15 +14,16 @@ from pymontecarlo.options.sample import \
     SubstrateSample, HorizontalLayerSample, VerticalLayerSample
 from pymontecarlo.util.token import Token, TokenState
 from pymontecarlo_casino2.worker import Casino2Worker
+from pymontecarlo_casino2.program import Casino2Program
+from pymontecarlo.exceptions import ProgramNotFound
 
 # Globals and constants variables.
 
 def _has_casino2():
-    filepath = os.path.join(os.path.dirname(__file__), 'casino2', 'wincasino2.exe')
-    if not os.path.exists(filepath):
-        return False
-
-    if os.path.getsize(filepath) < 1000000: # < 1Mb
+    try:
+        program = Casino2Program()
+        program.executable # Raise RuntimeError
+    except ProgramNotFound:
         return False
 
     return True

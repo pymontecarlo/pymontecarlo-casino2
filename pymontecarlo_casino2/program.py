@@ -12,6 +12,7 @@ import itertools
 # Local modules.
 from pymontecarlo.options.program.base import ProgramBase, ProgramBuilderBase
 from pymontecarlo.util.sysutil import is_64bits
+from pymontecarlo.exceptions import ProgramNotFound
 from pymontecarlo.options.model.elastic_cross_section import ElasticCrossSectionModel
 from pymontecarlo.options.model.ionization_cross_section import IonizationCrossSectionModel
 from pymontecarlo.options.model.ionization_potential import IonizationPotentialModel
@@ -78,11 +79,18 @@ class Casino2Program(ProgramBase):
 
     @property
     def executable(self):
+        """
+        Executable of Casino2, either wincasino2.exe on 32-bit system. or
+        wincasino2_64.exe on 64-bit systems.
+        
+        Raises
+            ProgramNotFound: if the executable cannot be found
+        """
         basedir = os.path.abspath(os.path.dirname(__file__))
         casino2dir = os.path.join(basedir, 'casino2')
 
         if not os.path.exists(casino2dir):
-            raise RuntimeError('Casino 2 program cannot be found')
+            raise ProgramNotFound('Casino 2 program cannot be found')
 
         if sys.platform == 'darwin': # Wine only works with 32-bit
             filename = 'wincasino2.exe'
@@ -91,8 +99,12 @@ class Casino2Program(ProgramBase):
         filepath = os.path.join(casino2dir, filename)
 
         if not os.path.exists(filepath):
-            raise RuntimeError('Cannot find {}. Installation might be corrupted.'
-                               .format(filepath))
+            raise ProgramNotFound('Cannot find {}. Installation might be corrupted.'
+                                  .format(filepath))
+
+        if os.path.getsize(filepath) < 1000000: # < 1Mb
+            return ProgramNotFound('{} is not the right file. Maybe Git LFS was not run.'
+                                   .format(filepath))
 
         return filepath
 
