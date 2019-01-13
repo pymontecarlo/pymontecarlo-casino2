@@ -20,4 +20,3 @@ after_success:
 - codecov
 notifications:
   email: false
-
