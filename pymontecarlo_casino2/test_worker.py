@@ -2,6 +2,7 @@
 """ """
 
 # Standard library modules.
+import os
 import asyncio
 
 # Third party modules.
@@ -16,6 +17,19 @@ from pymontecarlo.util.token import Token, TokenState
 from pymontecarlo_casino2.worker import Casino2Worker
 
 # Globals and constants variables.
+
+def _has_casino2():
+    filepath = os.path.join(os.path.dirname(__file__), 'casino2', 'wincasino2.exe')
+    if not os.path.exists(filepath):
+        return False
+
+    if os.path.getsize(filepath) < 1000000: # < 1Mb
+        return False
+
+    return True
+
+if not _has_casino2():
+    pytest.skip("Casino2 cannot be executed", allow_module_level=True)
 
 def _create_samples():
     yield SubstrateSample(Material.pure(39))
