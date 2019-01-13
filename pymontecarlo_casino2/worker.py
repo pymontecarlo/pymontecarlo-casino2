@@ -3,25 +3,27 @@ Casino 2 worker
 """
 
 # Standard library modules.
-import logging
 import os
 import sys
-import subprocess
 import tempfile
 import shutil
 from distutils.dir_util import copy_tree
+import asyncio
+import logging
+logger = logging.getLogger(__name__)
 
 # Third party modules.
 
 # Local modules.
 from pymontecarlo.exceptions import WorkerError
-from pymontecarlo.options.program.worker import WorkerBase, SubprocessWorkerMixin
+from pymontecarlo.options.program.worker import WorkerBase
+from pymontecarlo.util.process import create_startupinfo, kill_process
 
 # Globals and constants variables.
 
-class Casino2Worker(WorkerBase, SubprocessWorkerMixin):
+class Casino2Worker(WorkerBase):
 
-    def run(self, token, simulation, outputdir):
+    async def _run(self, token, simulation, outputdir):
         options = simulation.options
         program = options.program
         exporter = program.create_exporter()
@@ -36,11 +38,14 @@ class Casino2Worker(WorkerBase, SubprocessWorkerMixin):
 
         try:
             # Export
+            token.update(0.15, 'Exporting options')
             exporter.export(options, tmpdir)
             simfilepath = os.path.join(tmpdir, exporter.DEFAULT_SIM_FILENAME)
             simfilepath = simfilepath.replace('/', '\\')
 
             # Launch
+            token.update(0.2, 'Running Casino 2')
+
             if sys.platform == 'win32':
                 args = [executable, '-batch', simfilepath]
             elif sys.platform == 'linux' or sys.platform == 'darwin':
@@ -49,15 +54,19 @@ class Casino2Worker(WorkerBase, SubprocessWorkerMixin):
                 raise WorkerError('Unsupported operating system: {}'
                                   .format(sys.platform))
 
-            logging.debug('Launching %s', ' '.join(args))
+            logger.debug('Launching %s', ' '.join(args))
 
-            token.update(0.1, 'Running Casino 2')
-            stdout = subprocess.PIPE
-            stderr = subprocess.PIPE
-            cwd = executable_dir
+            kwargs = {}
+            kwargs['stdout'] = asyncio.subprocess.DEVNULL
+            kwargs['stderr'] = asyncio.subprocess.DEVNULL
+            kwargs['cwd'] = executable_dir
+            kwargs['startupinfo'] = create_startupinfo()
 
-            with self._create_process(args, stdout=stdout, stderr=stderr, cwd=cwd) as process:
-                self._wait_process(process, token)
+            process = await asyncio.create_subprocess_exec(*args, **kwargs)
+            returncode = await process.wait()
+
+            if returncode != 0:
+                raise WorkerError('Error running the simulation. Casino2 threw an error.')
 
             # Import results
             token.update(0.9, 'Importing results')
@@ -65,8 +74,13 @@ class Casino2Worker(WorkerBase, SubprocessWorkerMixin):
 
             # Copy to output directory
             copy_tree(tmpdir, outputdir)
+
+        except asyncio.CancelledError:
+            # Make sure the process is killed before raising CancelledError
+            kill_process(process)
+            raise
+
         finally:
             shutil.rmtree(tmpdir, ignore_errors=True)
 
-        token.update(1.0, 'Casino 2 ended')
         return simulation
