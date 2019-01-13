@@ -106,6 +106,11 @@ class Casino2Exporter(ExporterBase):
         # Run exporters
         simdata = casfile.getOptionSimulationData()
         simops = simdata.getSimulationOptions()
+        if simdata is None or simops is None:
+            error = IOError('Could not open .cas template file')
+            errors.add(error)
+            return
+
         self._run_exporters(options, errors, simdata, simops)
 
         # Write to disk

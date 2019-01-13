@@ -10,6 +10,9 @@ matrix:
   include:
   - python: '3.7'
     os: linux
+before_install:
+- git config lfs.fetchexclude "pymontecarlo_casino2/casino2"
+- git lfs pull
 install:
 - pip install --cache-dir $HOME/.pip-cache --upgrade git+https://github.com/pymontecarlo/pymontecarlo.git@$TRAVIS_BRANCH
 - pip install --cache-dir $HOME/.pip-cache --upgrade pip codecov
