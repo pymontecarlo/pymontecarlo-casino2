@@ -1,7 +1,9 @@
 """"""
 
 # Standard library modules.
+import sys
 import math
+import asyncio
 
 # Third party modules.
 import pytest
@@ -17,6 +19,19 @@ from pymontecarlo.options.analysis import PhotonIntensityAnalysis
 from pymontecarlo_casino2.program import Casino2Program
 
 # Globals and constants variables.
+
+@pytest.yield_fixture(scope='session')
+def event_loop(request):
+    """
+    Run all tests using the default event loop and never closes it.
+    """
+    if sys.platform == 'win32':
+        asyncio.set_event_loop_policy(asyncio.WindowsProactorEventLoopPolicy())
+
+    loop = asyncio.new_event_loop()
+    asyncio.set_event_loop(loop)
+    yield loop
+    loop.close()
 
 @pytest.fixture
 def options():
