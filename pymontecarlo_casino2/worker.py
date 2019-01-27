@@ -39,12 +39,13 @@ class Casino2Worker(WorkerBase):
         try:
             # Export
             token.update(0.15, 'Exporting options')
-            exporter.export(options, tmpdir)
-            simfilepath = os.path.join(tmpdir, exporter.DEFAULT_SIM_FILENAME)
-            simfilepath = simfilepath.replace('/', '\\')
+            await exporter.export(options, tmpdir)
 
             # Launch
             token.update(0.2, 'Running Casino 2')
+
+            simfilepath = os.path.join(tmpdir, exporter.DEFAULT_SIM_FILENAME)
+            simfilepath = simfilepath.replace('/', '\\')
 
             if sys.platform == 'win32':
                 args = [executable, '-batch', simfilepath]

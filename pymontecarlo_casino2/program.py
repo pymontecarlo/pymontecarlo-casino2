@@ -23,7 +23,6 @@ from pymontecarlo.options.model.energy_loss import EnergyLossModel
 from pymontecarlo_casino2.expander import Casino2Expander
 from pymontecarlo_casino2.exporter import Casino2Exporter
 from pymontecarlo_casino2.importer import Casino2Importer
-from pymontecarlo_casino2.validator import Casino2Validator
 from pymontecarlo_casino2.worker import Casino2Worker
 
 # Globals and constants variables.
@@ -64,9 +63,6 @@ class Casino2Program(ProgramBase):
 
     def create_expander(self):
         return Casino2Expander()
-
-    def create_validator(self):
-        return Casino2Validator()
 
     def create_exporter(self):
         return Casino2Exporter()

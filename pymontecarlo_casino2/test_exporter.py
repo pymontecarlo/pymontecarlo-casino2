@@ -2,13 +2,11 @@
 """ """
 
 # Standard library modules.
-import unittest
-import logging
-import os
-import glob
 import operator
 
 # Third party modules.
+import pytest
+
 from casinotools.fileformat.casino2.File import File
 from casinotools.fileformat.casino2.SimulationOptions import \
     (DIRECTION_COSINES_SOUM, CROSS_SECTION_MOTT_EQUATION,
@@ -17,235 +15,210 @@ from casinotools.fileformat.casino2.SimulationOptions import \
 
 # Local modules.
 from pymontecarlo_casino2.exporter import Casino2Exporter
-from pymontecarlo_casino2.program import Casino2Program
 
-from pymontecarlo.testcase import TestCase
 from pymontecarlo.options.material import Material
 from pymontecarlo.options.sample import VerticalLayerSample, HorizontalLayerSample
 from pymontecarlo.options.model import \
     (ElasticCrossSectionModel, IonizationCrossSectionModel,
      IonizationPotentialModel, RandomNumberGeneratorModel,
      DirectionCosineModel)
+from pymontecarlo.util.error import ErrorAccumulator
 
 # Globals and constants variables.
 
-class TestCasino2Exporter(TestCase):
+@pytest.fixture
+def exporter():
+    return Casino2Exporter()
 
-    def setUp(self):
-        super().setUp()
+def _test_material_region(material, region):
+    elements = list(map(operator.attrgetter('Z'), region.getElements()))
 
-        self.tmpdir = self.create_temp_dir()
+    assert region.Name == material.name
+    assert len(elements) == len(material.composition)
 
-        self.e = Casino2Exporter()
+    for z in material.composition:
+        assert z in elements
 
-        self.options = self.create_basic_options()
-        self.options.program = Casino2Program()
+    assert region.Rho == pytest.approx(material.density_kg_per_m3 / 1000.0, abs=1e-4)
 
-    def testexport(self):
-        # Export
-        self.e.export(self.options, self.tmpdir)
+@pytest.mark.asyncio
+async def test_export_substrate(event_loop, exporter, options, tmp_path):
+    # Export
+    await exporter.export(options, tmp_path)
 
-        # Test
-        filepaths = glob.glob(os.path.join(self.tmpdir, '*.sim'))
-        self.assertEqual(1, len(filepaths))
+    # Test
+    filepaths = list(tmp_path.glob('*.sim'))
+    assert len(filepaths) == 1
 
-        casfile = File()
-        casfile.readFromFilepath(filepaths[0])
-        simdata = casfile.getOptionSimulationData()
-        simops = simdata.getSimulationOptions()
-        regionops = simdata.getRegionOptions()
+    casfile = File()
+    casfile.readFromFilepath(filepaths[0])
+    simdata = casfile.getOptionSimulationData()
+    simops = simdata.getSimulationOptions()
+    regionops = simdata.getRegionOptions()
 
-        self.assertAlmostEqual(self.options.beam.energy_keV, simops.getIncidentEnergy_keV(0), 4)
-        self.assertAlmostEqual(2.7947137 * self.options.beam.diameter_m * 1e9 / 2.0, simops.Beam_Diameter, 4) # FWHM
-        self.assertAlmostEqual(0.0, simops._positionStart_nm, 4)
+    assert simops.getIncidentEnergy_keV(0) == pytest.approx(options.beam.energy_keV, abs=1e-4)
+    assert simops.Beam_Diameter == pytest.approx(2.7947137 * options.beam.diameter_m * 1e9 / 2.0, abs=1e-4)
+    assert simops._positionStart_nm == pytest.approx(0.0, abs=1e-4)
 
-        self.assertEqual(1, regionops.getNumberRegions())
-        region = regionops.getRegion(0)
-        elements = list(map(operator.attrgetter('Z'), region.getElements()))
-        self.assertAlmostEqual(self.options.sample.material.density_g_per_cm3, region.Rho, 4)
-        self.assertEqual('Copper', region.Name)
-        self.assertEqual(1, len(elements))
-        self.assertTrue(29 in elements)
+    assert regionops.getNumberRegions() == 1
 
-        self.assertEqual(self.options.program.number_trajectories, simops.getNumberElectrons())
+    region = regionops.getRegion(0)
+    _test_material_region(options.sample.material, region)
 
-        self.assertTrue(simops.FEmissionRX)
+    assert simops.getNumberElectrons() == options.program.number_trajectories
 
-    def testexport_grainboundaries(self):
-        # Options
-        mat1 = Material('Mat1', {79: 0.5, 47: 0.5}, 2.0)
-        mat2 = Material('Mat2', {29: 0.5, 30: 0.5}, 3.0)
-        mat3 = Material('Mat3', {13: 0.5, 14: 0.5}, 4.0)
+    assert simops.FEmissionRX
 
-        sample = VerticalLayerSample(mat1, mat2)
-        sample.add_layer(mat3, 25e-9)
-        self.options.sample = sample
+@pytest.mark.asyncio
+async def test_export_grainboundaries(event_loop, exporter, options, tmp_path):
+    # Options
+    mat1 = Material('Mat1', {79: 0.5, 47: 0.5}, 2.0)
+    mat2 = Material('Mat2', {29: 0.5, 30: 0.5}, 3.0)
+    mat3 = Material('Mat3', {13: 0.5, 14: 0.5}, 4.0)
 
-        # Export
-        self.e.export(self.options, self.tmpdir)
+    sample = VerticalLayerSample(mat1, mat2)
+    sample.add_layer(mat3, 25e-9)
+    options.sample = sample
 
-        # Test
-        filepaths = glob.glob(os.path.join(self.tmpdir, '*.sim'))
-        self.assertEqual(1, len(filepaths))
+    # Export
+    await exporter.export(options, tmp_path)
 
-        casfile = File()
-        casfile.readFromFilepath(filepaths[0])
-        simdata = casfile.getOptionSimulationData()
-        regionops = simdata.getRegionOptions()
+    # Test
+    filepaths = list(tmp_path.glob('*.sim'))
+    assert len(filepaths) == 1
 
-        self.assertEqual(3, regionops.getNumberRegions())
+    casfile = File()
+    casfile.readFromFilepath(filepaths[0])
+    simdata = casfile.getOptionSimulationData()
+    regionops = simdata.getRegionOptions()
 
-        region = regionops.getRegion(0)
-        elements = list(map(operator.attrgetter('Z'), region.getElements()))
-        self.assertAlmostEqual(mat1.density_kg_per_m3 / 1000.0, region.Rho, 4)
-        self.assertEqual('Mat1', region.Name)
-        self.assertEqual(2, len(elements))
-        self.assertTrue(79 in elements)
-        self.assertTrue(47 in elements)
+    assert regionops.getNumberRegions() == 3
 
-        region = regionops.getRegion(1)
-        elements = list(map(operator.attrgetter('Z'), region.getElements()))
-        self.assertAlmostEqual(mat3.density_kg_per_m3 / 1000.0, region.Rho, 4)
-        self.assertEqual('Mat3', region.Name)
-        self.assertEqual(2, len(elements))
-        self.assertTrue(13 in elements)
-        self.assertTrue(14 in elements)
+    region = regionops.getRegion(0)
+    _test_material_region(mat1, region)
 
-        region = regionops.getRegion(2)
-        elements = list(map(operator.attrgetter('Z'), region.getElements()))
-        self.assertAlmostEqual(mat2.density_kg_per_m3 / 1000.0, region.Rho, 4)
-        self.assertEqual('Mat2', region.Name)
-        self.assertEqual(2, len(elements))
-        self.assertTrue(29 in elements)
-        self.assertTrue(30 in elements)
+    region = regionops.getRegion(1)
+    _test_material_region(mat3, region)
 
-    def testexport_multilayers1(self):
-        # Options
-        mat1 = Material('Mat1', {79: 0.5, 47: 0.5}, 2.0)
-        mat2 = Material('Mat2', {29: 0.5, 30: 0.5}, 3.0)
-        mat3 = Material('Mat3', {13: 0.5, 14: 0.5}, 4.0)
+    region = regionops.getRegion(2)
+    _test_material_region(mat2, region)
 
-        sample = HorizontalLayerSample(mat1)
-        sample.add_layer(mat2, 25e-9)
-        sample.add_layer(mat3, 55e-9)
-        self.options.sample = sample
+@pytest.mark.asyncio
+async def test_export_multilayers(event_loop, exporter, options, tmp_path):
+    # Options
+    mat1 = Material('Mat1', {79: 0.5, 47: 0.5}, 2.0)
+    mat2 = Material('Mat2', {29: 0.5, 30: 0.5}, 3.0)
+    mat3 = Material('Mat3', {13: 0.5, 14: 0.5}, 4.0)
 
-        # Export
-        self.e.export(self.options, self.tmpdir)
+    sample = HorizontalLayerSample(mat1)
+    sample.add_layer(mat2, 25e-9)
+    sample.add_layer(mat3, 55e-9)
+    options.sample = sample
 
-        # Test
-        filepaths = glob.glob(os.path.join(self.tmpdir, '*.sim'))
-        self.assertEqual(1, len(filepaths))
+    # Export
+    await exporter.export(options, tmp_path)
 
-        casfile = File()
-        casfile.readFromFilepath(filepaths[0])
-        simdata = casfile.getOptionSimulationData()
-        regionops = simdata.getRegionOptions()
+    # Test
+    filepaths = list(tmp_path.glob('*.sim'))
+    assert len(filepaths) == 1
 
-        self.assertEqual(3, regionops.getNumberRegions())
+    casfile = File()
+    casfile.readFromFilepath(filepaths[0])
+    simdata = casfile.getOptionSimulationData()
+    regionops = simdata.getRegionOptions()
 
-        region = regionops.getRegion(0)
-        elements = list(map(operator.attrgetter('Z'), region.getElements()))
-        self.assertAlmostEqual(mat2.density_kg_per_m3 / 1000.0, region.Rho, 4)
-        self.assertEqual('Mat2', region.Name)
-        self.assertEqual(2, len(elements))
-        self.assertTrue(29 in elements)
-        self.assertTrue(30 in elements)
+    assert regionops.getNumberRegions() == 3
 
-        region = regionops.getRegion(1)
-        elements = list(map(operator.attrgetter('Z'), region.getElements()))
-        self.assertAlmostEqual(mat3.density_kg_per_m3 / 1000.0, region.Rho, 4)
-        self.assertEqual('Mat3', region.Name)
-        self.assertEqual(2, len(elements))
-        self.assertTrue(13 in elements)
-        self.assertTrue(14 in elements)
+    region = regionops.getRegion(0)
+    _test_material_region(mat2, region)
 
-        region = regionops.getRegion(2)
-        elements = list(map(operator.attrgetter('Z'), region.getElements()))
-        self.assertAlmostEqual(mat1.density_kg_per_m3 / 1000.0, region.Rho, 4)
-        self.assertEqual('Mat1', region.Name)
-        self.assertEqual(2, len(elements))
-        self.assertTrue(79 in elements)
-        self.assertTrue(47 in elements)
+    region = regionops.getRegion(1)
+    _test_material_region(mat3, region)
 
-    def testexport_multilayers2(self):
-        # Options
-        mat1 = Material('Mat1', {79: 0.5, 47: 0.5}, 2.0)
-        mat2 = Material('Mat2', {29: 0.5, 30: 0.5}, 3.0)
-        mat3 = Material('Mat3', {13: 0.5, 14: 0.5}, 4.0)
+    region = regionops.getRegion(2)
+    _test_material_region(mat1, region)
 
-        sample = HorizontalLayerSample()
-        sample.add_layer(mat1, 15e-9)
-        sample.add_layer(mat2, 25e-9)
-        sample.add_layer(mat3, 55e-9)
-        self.options.sample = sample
+@pytest.mark.asyncio
+async def test_export_multilayers2(event_loop, exporter, options, tmp_path):
+    # Options
+    mat1 = Material('Mat1', {79: 0.5, 47: 0.5}, 2.0)
+    mat2 = Material('Mat2', {29: 0.5, 30: 0.5}, 3.0)
+    mat3 = Material('Mat3', {13: 0.5, 14: 0.5}, 4.0)
 
-        # Export
-        self.e.export(self.options, self.tmpdir)
+    sample = HorizontalLayerSample()
+    sample.add_layer(mat1, 15e-9)
+    sample.add_layer(mat2, 25e-9)
+    sample.add_layer(mat3, 55e-9)
+    options.sample = sample
 
-        # Test
-        filepaths = glob.glob(os.path.join(self.tmpdir, '*.sim'))
-        self.assertEqual(1, len(filepaths))
+    # Export
+    await exporter.export(options, tmp_path)
 
-        casfile = File()
-        casfile.readFromFilepath(filepaths[0])
-        simdata = casfile.getOptionSimulationData()
-        regionops = simdata.getRegionOptions()
+    # Test
+    filepaths = list(tmp_path.glob('*.sim'))
+    assert len(filepaths) == 1
 
-        self.assertEqual(3, regionops.getNumberRegions())
+    casfile = File()
+    casfile.readFromFilepath(filepaths[0])
+    simdata = casfile.getOptionSimulationData()
+    regionops = simdata.getRegionOptions()
 
-        region = regionops.getRegion(0)
-        elements = list(map(operator.attrgetter('Z'), region.getElements()))
-        self.assertAlmostEqual(mat1.density_kg_per_m3 / 1000.0, region.Rho, 4)
-        self.assertEqual('Mat1', region.Name)
-        self.assertEqual(2, len(elements))
-        self.assertTrue(79 in elements)
-        self.assertTrue(47 in elements)
+    assert regionops.getNumberRegions() == 3
 
-        region = regionops.getRegion(1)
-        elements = list(map(operator.attrgetter('Z'), region.getElements()))
-        self.assertAlmostEqual(mat2.density_kg_per_m3 / 1000.0, region.Rho, 4)
-        self.assertEqual('Mat2', region.Name)
-        self.assertEqual(2, len(elements))
-        self.assertTrue(29 in elements)
-        self.assertTrue(30 in elements)
+    region = regionops.getRegion(0)
+    _test_material_region(mat1, region)
 
-        region = regionops.getRegion(2)
-        elements = list(map(operator.attrgetter('Z'), region.getElements()))
-        self.assertAlmostEqual(mat3.density_kg_per_m3 / 1000.0, region.Rho, 4)
-        self.assertEqual('Mat3', region.Name)
-        self.assertEqual(2, len(elements))
-        self.assertTrue(13 in elements)
-        self.assertTrue(14 in elements)
+    region = regionops.getRegion(1)
+    _test_material_region(mat2, region)
 
-    def testexport_models(self):
-        # Options
-        self.options.program.elastic_cross_section_model = ElasticCrossSectionModel.MOTT_DROUIN1993
-        self.options.program.ionization_cross_section_model = IonizationCrossSectionModel.GRYZINSKY
-        self.options.program.ionization_potential_model = IonizationPotentialModel.HOVINGTON
-        self.options.program.random_number_generator_model = RandomNumberGeneratorModel.MERSENNE
-        self.options.program.direction_cosine_model = DirectionCosineModel.SOUM1979
+    region = regionops.getRegion(2)
+    _test_material_region(mat3, region)
 
-        # Export
-        self.e.export(self.options, self.tmpdir)
+@pytest.mark.asyncio
+async def test_export_models(event_loop, exporter, options, tmp_path):
+    # Options
+    options.program.elastic_cross_section_model = ElasticCrossSectionModel.MOTT_DROUIN1993
+    options.program.ionization_cross_section_model = IonizationCrossSectionModel.GRYZINSKY
+    options.program.ionization_potential_model = IonizationPotentialModel.HOVINGTON
+    options.program.random_number_generator_model = RandomNumberGeneratorModel.MERSENNE
+    options.program.direction_cosine_model = DirectionCosineModel.SOUM1979
 
-        # Test
-        filepaths = glob.glob(os.path.join(self.tmpdir, '*.sim'))
-        self.assertEqual(1, len(filepaths))
+    # Export
+    await exporter.export(options, tmp_path)
 
-        casfile = File()
-        casfile.readFromFilepath(filepaths[0])
-        simdata = casfile.getOptionSimulationData()
-        simops = simdata.getSimulationOptions()
+    # Test
+    filepaths = list(tmp_path.glob('*.sim'))
+    assert len(filepaths) == 1
 
-        self.assertEqual(CROSS_SECTION_MOTT_EQUATION, simops.getTotalElectronElasticCrossSection())
-        self.assertEqual(CROSS_SECTION_MOTT_EQUATION, simops.getPartialElectronElasticCrossSection())
-        self.assertEqual(IONIZATION_CROSS_SECTION_GRYZINSKI - 1, simops.getIonizationCrossSectionType())
-        self.assertEqual(IONIZATION_POTENTIAL_HOVINGTON, simops.getIonizationPotentialType())
-        self.assertEqual(DIRECTION_COSINES_SOUM, simops.getDirectionCosines())
-        self.assertEqual(ENERGY_LOSS_JOY_LUO, simops.getEnergyLossType())
-        self.assertEqual(RANDOM_NUMBER_GENERATOR_MERSENNE_TWISTER, simops.getRandomNumberGeneratorType())
+    casfile = File()
+    casfile.readFromFilepath(filepaths[0])
+    simdata = casfile.getOptionSimulationData()
+    simops = simdata.getSimulationOptions()
 
-if __name__ == '__main__': #pragma: no cover
-    logging.getLogger().setLevel(logging.DEBUG)
-    unittest.main()
+    assert simops.getTotalElectronElasticCrossSection() == CROSS_SECTION_MOTT_EQUATION
+    assert simops.getPartialElectronElasticCrossSection() == CROSS_SECTION_MOTT_EQUATION
+    assert simops.getIonizationCrossSectionType() == IONIZATION_CROSS_SECTION_GRYZINSKI - 1
+    assert simops.getIonizationPotentialType() == IONIZATION_POTENTIAL_HOVINGTON
+    assert simops.getDirectionCosines() == DIRECTION_COSINES_SOUM
+    assert simops.getEnergyLossType() == ENERGY_LOSS_JOY_LUO
+    assert simops.getRandomNumberGeneratorType() == RANDOM_NUMBER_GENERATOR_MERSENNE_TWISTER
+
+@pytest.mark.asyncio
+async def test_export_program_number_trajectories_too_low(event_loop, exporter, options):
+    options.program.number_trajectories = 0
+
+    erracc = ErrorAccumulator()
+    await exporter._export(options, None, erracc, dry_run=True)
+
+    assert len(erracc.exceptions) == 1
+    assert len(erracc.warnings) == 0
+
+@pytest.mark.asyncio
+async def test_export_program_number_trajectories_too_high(event_loop, exporter, options):
+    options.program.number_trajectories = 1e10
+
+    erracc = ErrorAccumulator()
+    await exporter._export(options, None, erracc, dry_run=True)
+
+    assert len(erracc.exceptions) == 1
+    assert len(erracc.warnings) == 0
