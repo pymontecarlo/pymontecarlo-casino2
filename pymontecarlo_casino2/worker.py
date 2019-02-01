@@ -78,7 +78,7 @@ class Casino2Worker(WorkerBase):
 
         except asyncio.CancelledError:
             # Make sure the process is killed before raising CancelledError
-            kill_process(process)
+            kill_process(process.pid)
             raise
 
         finally:
