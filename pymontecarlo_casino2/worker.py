@@ -26,8 +26,6 @@ class Casino2Worker(WorkerBase):
     async def _run(self, token, simulation, outputdir):
         options = simulation.options
         program = options.program
-        exporter = program.create_exporter()
-        importer = program.create_importer()
 
         executable = program.executable
         executable_dir = os.path.dirname(executable)
@@ -39,12 +37,12 @@ class Casino2Worker(WorkerBase):
         try:
             # Export
             token.update(0.15, 'Exporting options')
-            await exporter.export(options, tmpdir)
+            await program.exporter.export(options, tmpdir)
 
             # Launch
             token.update(0.2, 'Running Casino 2')
 
-            simfilepath = os.path.join(tmpdir, exporter.DEFAULT_SIM_FILENAME)
+            simfilepath = os.path.join(tmpdir, program.exporter.DEFAULT_SIM_FILENAME)
             simfilepath = simfilepath.replace('/', '\\')
 
             if sys.platform == 'win32':
@@ -71,7 +69,7 @@ class Casino2Worker(WorkerBase):
 
             # Import results
             token.update(0.9, 'Importing results')
-            simulation.results += importer.import_(options, tmpdir)
+            simulation.results += program.importer.import_(options, tmpdir)
 
             # Copy to output directory
             copy_tree(tmpdir, outputdir)

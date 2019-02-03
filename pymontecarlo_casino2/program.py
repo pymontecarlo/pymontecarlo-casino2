@@ -38,6 +38,11 @@ class Casino2Program(ProgramBase):
                  energy_loss_model=EnergyLossModel.JOY_LUO1989):
         super().__init__('Casino 2')
 
+        self._expander = Casino2Expander()
+        self._exporter = Casino2Exporter()
+        self._importer = Casino2Importer()
+        self._worker = Casino2Worker()
+
         self.number_trajectories = number_trajectories
         self.elastic_cross_section_model = elastic_cross_section_model
         self.ionization_cross_section_model = ionization_cross_section_model
@@ -61,17 +66,21 @@ class Casino2Program(ProgramBase):
             self.direction_cosine_model == other.direction_cosine_model and \
             self.energy_loss_model == other.energy_loss_model
 
-    def create_expander(self):
-        return Casino2Expander()
+    @property
+    def expander(self):
+        return self._expander
 
-    def create_exporter(self):
-        return Casino2Exporter()
+    @property
+    def exporter(self):
+        return self._exporter
 
-    def create_worker(self):
-        return Casino2Worker()
+    @property
+    def worker(self):
+        return self._worker
 
-    def create_importer(self):
-        return Casino2Importer()
+    @property
+    def importer(self):
+        return self._importer
 
     @property
     def executable(self):
