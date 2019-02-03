@@ -69,7 +69,7 @@ class Casino2Worker(WorkerBase):
 
             # Import results
             token.update(0.9, 'Importing results')
-            simulation.results += program.importer.import_(options, tmpdir)
+            simulation.results += await program.importer.import_(options, tmpdir)
 
             # Copy to output directory
             copy_tree(tmpdir, outputdir)

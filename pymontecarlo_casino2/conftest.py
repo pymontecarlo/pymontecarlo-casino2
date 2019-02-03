@@ -1,6 +1,7 @@
 """"""
 
 # Standard library modules.
+import os
 import sys
 import math
 import asyncio
@@ -42,3 +43,7 @@ def options():
     analyses = [PhotonIntensityAnalysis(detector)]
     tags = ['basic', 'test']
     return Options(program, beam, sample, analyses, tags)
+
+@pytest.fixture
+def testdatadir():
+    return os.path.abspath(os.path.join(os.path.dirname(__file__), 'testdata'))
