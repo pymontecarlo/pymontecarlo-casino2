@@ -53,7 +53,7 @@ class Casino2Importer(ImporterBase):
 
         return self._run_importers(options, dirpath, erracc, simdata)
 
-    def _import_analysis_photonintensity(self, analysis, dirpath, erracc, simdata):
+    def _import_analysis_photonintensity(self, options, analysis, dirpath, erracc, simdata):
         emitted_builder = EmittedPhotonIntensityResultBuilder(analysis)
         intensities = simdata.get_total_xray_intensities_1_esr()
 
@@ -70,7 +70,7 @@ class Casino2Importer(ImporterBase):
 
         return [emitted_builder.build()]
 
-    def _import_analysis_kratio(self, analysis, dirpath, erracc, simdata):
+    def _import_analysis_kratio(self, options, analysis, dirpath, erracc, simdata):
         # Do nothing
         return []
 
