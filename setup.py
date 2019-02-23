@@ -30,15 +30,7 @@ EXTRAS_REQUIRE = {'develop': ['nose', 'coverage', 'pytest', 'pytest-cov', 'pytes
 
 CMDCLASS = versioneer.get_cmdclass()
 
-ENTRY_POINTS = {'pymontecarlo.formats.hdf5':
-                ['Casino2ProgramHDF5Handler = pymontecarlo_casino2.hdf5handler:Casino2ProgramHDF5Handler'],
-
-                'pymontecarlo.formats.series':
-                ['Casino2ProgramSeriesHandler = pymontecarlo_casino2.serieshandler:Casino2ProgramSeriesHandler'],
-
-                'pymontecarlo.formats.document':
-                ['Casino2ProgramDocumentHandler = pymontecarlo_casino2.documenthandler:Casino2ProgramDocumentHandler'],
-                }
+ENTRY_POINTS = {}
 
 setup(name="pyMonteCarlo-Casino2",
       version=versioneer.get_version(),

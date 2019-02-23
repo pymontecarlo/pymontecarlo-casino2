@@ -13,12 +13,7 @@ import itertools
 from pymontecarlo.options.program.base import ProgramBase, ProgramBuilderBase
 from pymontecarlo.util.sysutil import is_64bits
 from pymontecarlo.exceptions import ProgramNotFound
-from pymontecarlo.options.model.elastic_cross_section import ElasticCrossSectionModel
-from pymontecarlo.options.model.ionization_cross_section import IonizationCrossSectionModel
-from pymontecarlo.options.model.ionization_potential import IonizationPotentialModel
-from pymontecarlo.options.model.random_number_generator import RandomNumberGeneratorModel
-from pymontecarlo.options.model.direction_cosine import DirectionCosineModel
-from pymontecarlo.options.model.energy_loss import EnergyLossModel
+from pymontecarlo.options.model import convert_models_document, ElasticCrossSectionModel, IonizationCrossSectionModel, IonizationPotentialModel, RandomNumberGeneratorModel, DirectionCosineModel, EnergyLossModel
 
 from pymontecarlo_casino2.expander import Casino2Expander
 from pymontecarlo_casino2.exporter import Casino2Exporter
@@ -112,6 +107,69 @@ class Casino2Program(ProgramBase):
                                   .format(filepath))
 
         return filepath
+
+#region HDF5
+
+    ATTR_NUMBER_TRAJECTORIES = 'number trajectories'
+    ATTR_ELASTIC_CROSS_SECTION_MODEL = 'elastic cross section model'
+    ATTR_IONIZATION_CROSS_SECTION_MODEL = 'ionization cross section model'
+    ATTR_IONIZATION_POTENTIAL_MODEL = 'ionization potential model'
+    ATTR_RANDOM_NUMBER_GENERATOR_MODEL = 'random number generator model'
+    ATTR_DIRECTION_COSINE_MODEL = 'direction cosine model'
+    ATTR_ENERGY_LOSS_MODEL = 'energy loss model'
+
+    @classmethod
+    def parse_hdf5(cls, group):
+        number_trajectories = cls._parse_hdf5(group, cls.ATTR_NUMBER_TRAJECTORIES, int)
+        elastic_cross_section_model = cls._parse_hdf5(group, cls.ATTR_ELASTIC_CROSS_SECTION_MODEL, ElasticCrossSectionModel)
+        ionization_cross_section_model = cls._parse_hdf5(group, cls.ATTR_IONIZATION_CROSS_SECTION_MODEL, IonizationCrossSectionModel)
+        ionization_potential_model = cls._parse_hdf5(group, cls.ATTR_IONIZATION_POTENTIAL_MODEL, IonizationPotentialModel)
+        random_number_generator_model = cls._parse_hdf5(group, cls.ATTR_RANDOM_NUMBER_GENERATOR_MODEL, RandomNumberGeneratorModel)
+        direction_cosine_model = cls._parse_hdf5(group, cls.ATTR_DIRECTION_COSINE_MODEL, DirectionCosineModel)
+        energy_loss_model = cls._parse_hdf5(group, cls.ATTR_ENERGY_LOSS_MODEL, EnergyLossModel)
+        return cls(number_trajectories, elastic_cross_section_model, ionization_cross_section_model, ionization_potential_model, random_number_generator_model, direction_cosine_model, energy_loss_model)
+
+    def convert_hdf5(self, group):
+        super().convert_hdf5(group)
+        self._convert_hdf5(group, self.ATTR_NUMBER_TRAJECTORIES, self.number_trajectories)
+        self._convert_hdf5(group, self.ATTR_ELASTIC_CROSS_SECTION_MODEL, self.elastic_cross_section_model)
+        self._convert_hdf5(group, self.ATTR_IONIZATION_CROSS_SECTION_MODEL, self.ionization_cross_section_model)
+        self._convert_hdf5(group, self.ATTR_IONIZATION_POTENTIAL_MODEL, self.ionization_potential_model)
+        self._convert_hdf5(group, self.ATTR_RANDOM_NUMBER_GENERATOR_MODEL, self.random_number_generator_model)
+        self._convert_hdf5(group, self.ATTR_DIRECTION_COSINE_MODEL, self.direction_cosine_model)
+        self._convert_hdf5(group, self.ATTR_ENERGY_LOSS_MODEL, self.energy_loss_model)
+
+#endregion
+
+#region Series
+
+    def convert_series(self, builder):
+        super().convert_series(builder)
+
+        builder.add_column('number of trajectories', 'ntraj', self.number_trajectories)
+        builder.add_column('elastic cross section model', 'elastic', self.elastic_cross_section_model)
+        builder.add_column('ionization cross section model' , 'ionization', self.ionization_cross_section_model)
+        builder.add_column('ionization potential model' , 'potential', self.ionization_potential_model)
+        builder.add_column('random number generator model', 'random', self.random_number_generator_model)
+        builder.add_column('direction cosine model', 'cosine', self.direction_cosine_model)
+        builder.add_column('energy loss model', 'loss', self.energy_loss_model)
+
+#endregion
+
+#region Document
+
+    def convert_document(self, builder):
+        super().convert_document(builder)
+
+        description = builder.require_description(self.DESCRIPTION_PROGRAM)
+        description.add_item('Number of trajectories', self.number_trajectories)
+
+        section = builder.add_section()
+        section.add_title('Models')
+
+        convert_models_document(builder, self.elastic_cross_section_model, self.ionization_cross_section_model, self.ionization_potential_model, self.random_number_generator_model, self.direction_cosine_model, self.energy_loss_model)
+
+#endregion
 
 class Casino2ProgramBuilder(ProgramBuilderBase):
 

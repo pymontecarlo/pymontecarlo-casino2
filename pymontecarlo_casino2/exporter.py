@@ -161,36 +161,36 @@ class Casino2Exporter(ExporterBase):
 
         # Elastic cross section
         model = program.elastic_cross_section_model
-        self._export_model(model, ELASTIC_CROSS_SECTION_MODEL_LOOKUP.keys(), erracc)
+        self._validate_model(model, ELASTIC_CROSS_SECTION_MODEL_LOOKUP.keys(), erracc)
         simops.setElasticCrossSectionType(ELASTIC_CROSS_SECTION_MODEL_LOOKUP[model])
 
         # Ionization cross section
         model = program.ionization_cross_section_model
-        self._export_model(model, IONIZATION_CROSS_SECTION_MODEL_LOOKUP.keys(), erracc)
+        self._validate_model(model, IONIZATION_CROSS_SECTION_MODEL_LOOKUP.keys(), erracc)
         simops.setIonizationCrossSectionType(IONIZATION_CROSS_SECTION_MODEL_LOOKUP[model])
 
         # Ionization potential
         model = program.ionization_potential_model
-        self._export_model(model, IONIZATION_POTENTIAL_MODEL_LOOKUP.keys(), erracc)
+        self._validate_model(model, IONIZATION_POTENTIAL_MODEL_LOOKUP.keys(), erracc)
         simops.setIonizationPotentialType(IONIZATION_POTENTIAL_MODEL_LOOKUP[model])
 
         # Random number generator
         model = program.random_number_generator_model
-        self._export_model(model, RANDOM_NUMBER_GENERATOR_MODEL_LOOKUP.keys(), erracc)
+        self._validate_model(model, RANDOM_NUMBER_GENERATOR_MODEL_LOOKUP.keys(), erracc)
         simops.setRandomNumberGeneratorType(RANDOM_NUMBER_GENERATOR_MODEL_LOOKUP[model])
 
         # Direction cosines
         model = program.direction_cosine_model
-        self._export_model(model, DIRECTION_COSINES_MODEL_LOOKUP.keys(), erracc)
+        self._validate_model(model, DIRECTION_COSINES_MODEL_LOOKUP.keys(), erracc)
         simops.setDirectionCosines(DIRECTION_COSINES_MODEL_LOOKUP[model])
 
         # Energy loss
         model = program.energy_loss_model
-        self._export_model(model, ENERGY_LOSS_MODEL_LOOKUP.keys(), erracc)
+        self._validate_model(model, ENERGY_LOSS_MODEL_LOOKUP.keys(), erracc)
         simops.setEnergyLossType(ENERGY_LOSS_MODEL_LOOKUP[model])
 
-    def _export_beam_gaussian(self, beam, options, erracc, simdata, simops):
-        super()._export_beam_gaussian(beam, options, erracc, simdata, simops)
+    def _validate_beam(self, beam, options, erracc):
+        super()._validate_beam(beam, options, erracc)
 
         # Particle
         particle = beam.particle
@@ -200,15 +200,19 @@ class Casino2Exporter(ExporterBase):
                              .format(particle))
             erracc.add_exception(exc)
 
-        # Energy
-        simops.setIncidentEnergy_keV(beam.energy_eV / 1000.0) # keV
-
         # Position
         if beam.y0_m != 0.0:
             exc = ValueError("Beam initial y position ({0:g}) must be 0.0"
                              .format(beam.y0_m))
             erracc.add_exception(exc)
 
+    def _export_beam_gaussian(self, beam, options, erracc, simdata, simops):
+        self._validate_beam(beam, options, erracc)
+
+        # Energy
+        simops.setIncidentEnergy_keV(beam.energy_eV / 1000.0) # keV
+
+        # Position
         simops.setPosition(beam.x0_m * 1e9) # nm
 
         # Diameter
@@ -223,8 +227,6 @@ class Casino2Exporter(ExporterBase):
         simops.Beam_angle = 0.0
 
     def _export_material(self, material, options, erracc, region):
-        super()._export_material(material, options, erracc)
-
         region.removeAllElements()
 
         for z, fraction in material.composition.items():
@@ -236,14 +238,16 @@ class Casino2Exporter(ExporterBase):
         region.Rho = material.density_g_per_cm3
         region.Name = material.name
 
-    def _export_layer(self, layer, options, erracc, region):
+    def _validate_layer(self, layer, options, erracc):
+        super()._validate_layer(layer, options, erracc)
+
         if layer.material is VACUUM:
             exc = ValueError('Layer with VACUUM material is not supported.')
             erracc.add_exception(exc)
 
-        super()._export_layer(layer, options, erracc, region)
+    def _validate_sample(self, sample, options, erracc):
+        super()._validate_sample(sample, options, erracc)
 
-    def _export_sample(self, sample, options, erracc, simdata, simops):
         if sample.tilt_rad != 0.0:
             exc = ValueError('Sample tilt is not supported.')
             erracc.add_exception(exc)
@@ -252,17 +256,15 @@ class Casino2Exporter(ExporterBase):
             exc = ValueError('Sample azimuth is not supported.')
             erracc.add_exception(exc)
 
-        super()._export_sample(sample, options, erracc, simdata, simops)
-
     def _export_sample_substrate(self, sample, options, erracc, simdata, simops):
-        super()._export_sample_substrate(sample, options, erracc, simdata, simops)
+        self._validate_sample_substrate(sample, options, erracc)
 
         regionops = simdata.getRegionOptions()
         region = regionops.getRegion(0)
         self._export_material(sample.material, options, erracc, region)
 
     def _export_sample_horizontallayers(self, sample, options, erracc, simdata, simops):
-        super()._export_sample_horizontallayers(sample, options, erracc, simdata, simops)
+        self._validate_sample_horizontallayers(sample, options, erracc)
 
         regionops = simdata.getRegionOptions()
         layers = sample.layers
@@ -270,7 +272,7 @@ class Casino2Exporter(ExporterBase):
 
         for i, (layer, zposition_m) in enumerate(zip(layers, zpositions_m)):
             region = regionops.getRegion(i)
-            self._export_layer(layer, options, erracc, region)
+            self._export_material(layer.material, options, erracc, region)
 
             zmin_m, zmax_m = zposition_m
             parameters = [abs(zmax_m) * 1e9, abs(zmin_m) * 1e9, 0.0, 0.0]
@@ -290,7 +292,7 @@ class Casino2Exporter(ExporterBase):
             simops.setTotalThickness_nm(abs(zmin_m) * 1e9)
 
     def _export_sample_verticallayers(self, sample, options, erracc, simdata, simops):
-        super()._export_sample_verticallayers(sample, options, erracc, simdata, simops)
+        self._validate_sample_verticallayers(sample, options, erracc)
 
         regionops = simdata.getRegionOptions()
         layers = sample.layers
@@ -310,7 +312,7 @@ class Casino2Exporter(ExporterBase):
         # Layers
         for i, (layer, xposition_m) in enumerate(zip(layers, xpositions_m)):
             region = regionops.getRegion(i + 1)
-            self._export_layer(layer, options, erracc, region)
+            self._export_material(layer.material, options, erracc, region)
 
             xmin_m, xmax_m = xposition_m
             parameters = [xmin_m * 1e9, xmax_m * 1e9, 0.0, 0.0]
@@ -332,7 +334,7 @@ class Casino2Exporter(ExporterBase):
         super()._export_detectors(detectors, options, erracc, simdata, simops)
 
     def _export_detector_photon(self, detector, options, erracc, simdata, simops):
-        super()._export_detector_photon(detector, options, erracc, simdata, simops)
+        self._validate_detector_photon(detector, options, erracc)
 
         simops.TOA = detector.elevation_deg
         simops.PhieRX = detector.azimuth_deg
@@ -345,7 +347,7 @@ class Casino2Exporter(ExporterBase):
         super()._export_analyses(analyses, options, erracc, simdata, simops)
 
     def _export_analysis_photonintensity(self, analysis, options, erracc, simdata, simops):
-        super()._export_analysis_photonintensity(analysis, options, erracc, simdata, simops)
+        self._validate_analysis_photonintensity(analysis, options, erracc)
 
     def _export_analysis_kratio(self, analysis, options, erracc, simdata, simops):
-        super()._export_analysis_kratio(analysis, options, erracc, simdata, simops)
+        self._validate_analysis_kratio(analysis, options, erracc)
