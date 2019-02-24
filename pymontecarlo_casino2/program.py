@@ -12,6 +12,7 @@ import itertools
 # Third party modules.
 
 # Local modules.
+import pymontecarlo.options.base as base
 from pymontecarlo.options.program.base import ProgramBase, ProgramBuilderBase
 from pymontecarlo.util.sysutil import is_64bits
 from pymontecarlo.exceptions import ProgramNotFound
@@ -55,7 +56,7 @@ class Casino2Program(ProgramBase):
 
     def __eq__(self, other):
         return super().__eq__(other) and \
-            self.number_trajectories == other.number_trajectories and \
+            base.isclose(self.number_trajectories, other.number_trajectories) and \
             self.elastic_cross_section_model == other.elastic_cross_section_model and \
             self.ionization_cross_section_model == other.ionization_cross_section_model and \
             self.ionization_potential_model == other.ionization_potential_model and \
