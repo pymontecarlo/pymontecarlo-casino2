@@ -16,6 +16,7 @@ from casinotools.fileformat.casino2.SimulationOptions import \
 # Local modules.
 from pymontecarlo_casino2.exporter import Casino2Exporter
 
+from pymontecarlo.options.base import apply_lazy
 from pymontecarlo.options.material import Material
 from pymontecarlo.options.sample import VerticalLayerSample, HorizontalLayerSample
 from pymontecarlo.options.model import \
@@ -68,6 +69,30 @@ async def test_export_substrate(event_loop, exporter, options, tmp_path):
     assert simops.getNumberElectrons() == options.program.number_trajectories
 
     assert simops.FEmissionRX
+
+@pytest.mark.asyncio
+async def test_export_substrate_nodensity(event_loop, exporter, options, tmp_path):
+    material = Material('blah', {29: 1.0})
+    options.sample.material = material
+
+    # Export
+    await exporter.export(options, tmp_path)
+
+    # Test
+    filepaths = list(tmp_path.glob('*.sim'))
+    assert len(filepaths) == 1
+
+    casfile = File()
+    casfile.readFromFilepath(filepaths[0])
+    simdata = casfile.getOptionSimulationData()
+    regionops = simdata.getRegionOptions()
+
+    assert regionops.getNumberRegions() == 1
+
+    region = regionops.getRegion(0)
+
+    expected = apply_lazy(material.density_kg_per_m3, material, options)
+    assert region.Rho == pytest.approx(expected / 1000.0, abs=1e-4)
 
 @pytest.mark.asyncio
 async def test_export_grainboundaries(event_loop, exporter, options, tmp_path):

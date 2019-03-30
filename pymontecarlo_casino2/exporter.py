@@ -25,6 +25,7 @@ from casinotools.fileformat.casino2.SimulationOptions import \
 
 # Local modules.
 from pymontecarlo.options import Particle, VACUUM
+from pymontecarlo.options.base import apply_lazy
 from pymontecarlo.options.beam import GaussianBeam
 from pymontecarlo.options.sample import  \
     SubstrateSample, HorizontalLayerSample, VerticalLayerSample
@@ -143,9 +144,10 @@ class Casino2Exporter(ExporterBase):
             exc = IOError('Unknown geometry: {0}'.format(sample))
             erracc.add_exception(exc)
 
-    def _export_program(self, program, options, erracc, simdata, simops):
-        # Trajectories
-        number_trajectories = program.number_trajectories
+    def _validate_program(self, program, options, erracc):
+        super()._validate_program(program, options, erracc)
+
+        number_trajectories = apply_lazy(program.number_trajectories, program, options)
 
         if number_trajectories < 25:
             exc = ValueError('Number of showers ({0}) must be greater or equal to 25.'
@@ -157,6 +159,11 @@ class Casino2Exporter(ExporterBase):
                              .format(number_trajectories))
             erracc.add_exception(exc)
 
+    def _export_program(self, program, options, erracc, simdata, simops):
+        self._validate_program(program, options, erracc)
+
+        # Trajectories
+        number_trajectories = apply_lazy(program.number_trajectories, program, options)
         simops.setNumberElectrons(number_trajectories)
 
         # Elastic cross section
@@ -193,7 +200,7 @@ class Casino2Exporter(ExporterBase):
         super()._validate_beam(beam, options, erracc)
 
         # Particle
-        particle = beam.particle
+        particle = apply_lazy(beam.particle, beam, options)
 
         if particle is not Particle.ELECTRON:
             exc = ValueError('Particle {0} is not supported. Only ELECTRON.'
@@ -201,19 +208,23 @@ class Casino2Exporter(ExporterBase):
             erracc.add_exception(exc)
 
         # Position
-        if beam.y0_m != 0.0:
+        y0_m = apply_lazy(beam.y0_m, beam, options)
+
+        if y0_m != 0.0:
             exc = ValueError("Beam initial y position ({0:g}) must be 0.0"
-                             .format(beam.y0_m))
+                             .format(y0_m))
             erracc.add_exception(exc)
 
     def _export_beam_gaussian(self, beam, options, erracc, simdata, simops):
         self._validate_beam(beam, options, erracc)
 
         # Energy
-        simops.setIncidentEnergy_keV(beam.energy_eV / 1000.0) # keV
+        energy_eV = apply_lazy(beam.energy_eV, beam, options)
+        simops.setIncidentEnergy_keV(energy_eV / 1000.0) # keV
 
         # Position
-        simops.setPosition(beam.x0_m * 1e9) # nm
+        x0_m = apply_lazy(beam.x0_m, beam, options)
+        simops.setPosition(x0_m * 1e9) # nm
 
         # Diameter
         # Casino's beam diameter contains 99.9% of the electrons (n=3.290)
@@ -222,21 +233,28 @@ class Casino2Exporter(ExporterBase):
         # d_{CASINO} = 2.7947137 d_{FWHM}
         # NOTE: The attribute Beam_Diameter corresponds in fact to the beam
         # radius.
-        simops.Beam_Diameter = 2.7947137 * beam.diameter_m * 1e9 / 2.0 # nm
+        diameter_m = apply_lazy(beam.diameter_m, beam, options)
+        simops.Beam_Diameter = 2.7947137 * diameter_m * 1e9 / 2.0 # nm
 
         simops.Beam_angle = 0.0
 
     def _export_material(self, material, options, erracc, region):
         region.removeAllElements()
 
-        for z, fraction in material.composition.items():
+        composition = apply_lazy(material.composition, material, options)
+
+        for z, fraction in composition.items():
             region.addElement(pyxray.element_symbol(z), weight_fraction=fraction)
 
         region.update() # Calculate number of elements, mean atomic number
 
         region.User_Density = True
-        region.Rho = material.density_g_per_cm3
-        region.Name = material.name
+
+        density_g_per_cm3 = apply_lazy(material.density_g_per_cm3, material, options)
+        region.Rho = density_g_per_cm3
+
+        name = apply_lazy(material.name, material, options).strip()
+        region.Name = name
 
     def _validate_layer(self, layer, options, erracc):
         super()._validate_layer(layer, options, erracc)
@@ -248,11 +266,13 @@ class Casino2Exporter(ExporterBase):
     def _validate_sample(self, sample, options, erracc):
         super()._validate_sample(sample, options, erracc)
 
-        if sample.tilt_rad != 0.0:
+        tilt_rad = apply_lazy(sample.tilt_rad, sample, options)
+        if tilt_rad != 0.0:
             exc = ValueError('Sample tilt is not supported.')
             erracc.add_exception(exc)
 
-        if sample.azimuth_rad != 0.0:
+        azimuth_rad = apply_lazy(sample.azimuth_rad, sample, options)
+        if azimuth_rad != 0.0:
             exc = ValueError('Sample azimuth is not supported.')
             erracc.add_exception(exc)
 
@@ -261,13 +281,15 @@ class Casino2Exporter(ExporterBase):
 
         regionops = simdata.getRegionOptions()
         region = regionops.getRegion(0)
-        self._export_material(sample.material, options, erracc, region)
+
+        material = apply_lazy(sample.material, sample, options)
+        self._export_material(material, options, erracc, region)
 
     def _export_sample_horizontallayers(self, sample, options, erracc, simdata, simops):
         self._validate_sample_horizontallayers(sample, options, erracc)
 
         regionops = simdata.getRegionOptions()
-        layers = sample.layers
+        layers = apply_lazy(sample.layers, sample, options)
         zpositions_m = sample.layers_zpositions_m
 
         for i, (layer, zposition_m) in enumerate(zip(layers, zpositions_m)):
@@ -279,8 +301,10 @@ class Casino2Exporter(ExporterBase):
             region.setParameters(parameters)
 
         if sample.has_substrate():
+            substrate_material = apply_lazy(sample.substrate_material, sample, options)
+
             region = regionops.getRegion(regionops.getNumberRegions() - 1)
-            self._export_material(sample.substrate_material, options, erracc, region)
+            self._export_material(substrate_material, options, erracc, region)
 
             zmin_m, _zmax_m = zpositions_m[-1]
             parameters = region.getParameters()
@@ -295,13 +319,14 @@ class Casino2Exporter(ExporterBase):
         self._validate_sample_verticallayers(sample, options, erracc)
 
         regionops = simdata.getRegionOptions()
-        layers = sample.layers
+        layers = apply_lazy(sample.layers, sample, options)
         xpositions_m = sample.layers_xpositions_m
         assert len(layers) == regionops.getNumberRegions() - 2 # without substrates
 
         # Left substrate
         region = regionops.getRegion(0)
-        self._export_material(sample.left_material, options, erracc, region)
+        left_material = apply_lazy(sample.left_material, sample, options)
+        self._export_material(left_material, options, erracc, region)
 
         xmin_m, _xmax_m = xpositions_m[0] if xpositions_m else (0.0, 0.0)
         parameters = region.getParameters()
@@ -320,7 +345,8 @@ class Casino2Exporter(ExporterBase):
 
         # Right substrate
         region = regionops.getRegion(regionops.getNumberRegions() - 1)
-        self._export_material(sample.right_material, options, erracc, region)
+        right_material = apply_lazy(sample.right_material, sample, options)
+        self._export_material(right_material, options, erracc, region)
 
         _xmin_m, xmax_m = xpositions_m[-1] if xpositions_m else (0.0, 0.0)
         parameters = region.getParameters()
@@ -336,8 +362,12 @@ class Casino2Exporter(ExporterBase):
     def _export_detector_photon(self, detector, options, erracc, simdata, simops):
         self._validate_detector_photon(detector, options, erracc)
 
-        simops.TOA = detector.elevation_deg
-        simops.PhieRX = detector.azimuth_deg
+        elevation_deg = apply_lazy(detector.elevation_deg, detector, options)
+        simops.TOA = elevation_deg
+
+        azimuth_deg = apply_lazy(detector.azimuth_deg, detector, options)
+        simops.PhieRX = azimuth_deg
+
         simops.FEmissionRX = 1 # Simulate x-rays
 
     def _export_analyses(self, analyses, options, erracc, simdata, simops):
