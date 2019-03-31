@@ -32,6 +32,9 @@ EXTRAS_REQUIRE = {}
 with open(os.path.join(BASEDIR, 'requirements_dev.txt'), 'r') as fp:
     EXTRAS_REQUIRE['develop'] = fp.read().splitlines()
 
+with open(os.path.join(BASEDIR, 'requirements_gui.txt'), 'r') as fp:
+    EXTRAS_REQUIRE['gui'] = fp.read().splitlines()
+
 CMDCLASS = versioneer.get_cmdclass()
 
 ENTRY_POINTS = {}

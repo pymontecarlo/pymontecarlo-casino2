@@ -5,6 +5,7 @@
 	<projects>
 		<project>pyCasinoTools</project>
 		<project>pymontecarlo</project>
+		<project>pymontecarlo-gui</project>
 	</projects>
 	<buildSpec>
 		<buildCommand>
