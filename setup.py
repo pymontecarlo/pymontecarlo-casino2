@@ -25,8 +25,12 @@ for root, _dirnames, filenames in os.walk(casinodir):
         relpath = os.path.join(dirpath, filename)
         PACKAGE_DATA['pymontecarlo_casino2'].append(relpath)
 
-INSTALL_REQUIRES = ['pymontecarlo', 'pycasinotools']
-EXTRAS_REQUIRE = {'develop': ['nose', 'coverage', 'pytest', 'pytest-cov', 'pytest-asyncio']}
+with open(os.path.join(BASEDIR, 'requirements.txt'), 'r') as fp:
+    INSTALL_REQUIRES = fp.read().splitlines()
+
+EXTRAS_REQUIRE = {}
+with open(os.path.join(BASEDIR, 'requirements_dev.txt'), 'r') as fp:
+    EXTRAS_REQUIRE['develop'] = fp.read().splitlines()
 
 CMDCLASS = versioneer.get_cmdclass()
 
@@ -36,6 +40,8 @@ setup(name="pyMonteCarlo-Casino2",
       version=versioneer.get_version(),
       url='https://github.com/pymontecarlo',
       description="Python interface for Monte Carlo simulation program Casino 2",
+      long_description=LONG_DESCRIPTION,
+      long_description_content_type='text/x-rst',
       author="Philippe T. Pinard and Hendrix Demers",
       author_email="philippe.pinard@gmail.com",
       license="Apache License 2.0",
