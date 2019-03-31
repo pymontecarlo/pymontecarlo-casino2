@@ -48,7 +48,7 @@ def _create_samples():
 
 @pytest.mark.asyncio
 @pytest.mark.parametrize('sample', _create_samples())
-async def test_casino2_worker(options, sample, tmpdir):
+async def test_casino2_worker(event_loop, options, sample, tmpdir):
     options.sample = sample
 
     worker = Casino2Worker()
@@ -64,7 +64,7 @@ async def test_casino2_worker(options, sample, tmpdir):
     assert len(simulation.results) == 1
 
 @pytest.mark.asyncio
-async def test_casino2_cancel(options, tmpdir):
+async def test_casino2_cancel(event_loop, options, tmpdir):
     # Increase number of electrons
     options.program.number_trajectories = 10000
 
