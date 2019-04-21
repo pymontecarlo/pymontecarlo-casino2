@@ -50,9 +50,9 @@ class NumberTrajectoriesField(MultiValueFieldBase):
 
 class Casino2ProgramField(ProgramFieldBase):
 
-    def __init__(self, wizard=None):
+    def __init__(self, model):
         default_program=Casino2Program()
-        super().__init__(default_program=default_program, wizard=wizard)
+        super().__init__(model, default_program=default_program)
 
         self.field_number_trajectories = NumberTrajectoriesField()
         self.addLabelField(self.field_number_trajectories)
