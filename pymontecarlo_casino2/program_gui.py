@@ -30,7 +30,7 @@ class NumberTrajectoriesField(MultiValueFieldBase):
 
         # widgets
         self._widget = ColoredMultiFloatLineEdit()
-        self._widget.setRange(1, float('inf'), 0)
+        self._widget.setRange(25, 1e9, 0)
         self._widget.setValues([10000])
 
         # Signals
