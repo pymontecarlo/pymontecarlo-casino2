@@ -26,7 +26,7 @@ from casinotools.fileformat.casino2.SimulationOptions import \
 # Local modules.
 from pymontecarlo.options import Particle, VACUUM
 from pymontecarlo.options.base import apply_lazy
-from pymontecarlo.options.beam import GaussianBeam
+from pymontecarlo.options.beam import GaussianBeam, PencilBeam
 from pymontecarlo.options.sample import  \
     SubstrateSample, HorizontalLayerSample, VerticalLayerSample
 from pymontecarlo.options.detector import PhotonDetector
@@ -76,6 +76,7 @@ class Casino2Exporter(ExporterBase):
     def __init__(self):
         super().__init__()
 
+        self.beam_export_methods[PencilBeam] = self._export_beam_pencil
         self.beam_export_methods[GaussianBeam] = self._export_beam_gaussian
 
         self.sample_export_methods[SubstrateSample] = self._export_sample_substrate
@@ -207,6 +208,9 @@ class Casino2Exporter(ExporterBase):
                              .format(particle))
             erracc.add_exception(exc)
 
+    def _validate_beam_pencil(self, beam, options, erracc):
+        super()._validate_beam_pencil(beam, options, erracc)
+
         # Position
         y0_m = apply_lazy(beam.y0_m, beam, options)
 
@@ -215,8 +219,34 @@ class Casino2Exporter(ExporterBase):
                              .format(y0_m))
             erracc.add_exception(exc)
 
+    def _validate_beam_cylindrical(self, beam, options, erracc):
+        super()._validate_beam_cylindrical(beam, options, erracc)
+
+        # Diameter
+        diameter_m = apply_lazy(beam.diameter_m, beam, options)
+
+        if diameter_m < 0:
+            exc = ValueError('Beam diameter ({:g}m) must be greater or equal to 0.0'
+                             .format(diameter_m))
+            erracc.add_exception(exc)
+
+    def _export_beam_pencil(self, beam, options, erracc, simdata, simops):
+        self._validate_beam_pencil(beam, options, erracc)
+
+        # Energy
+        energy_eV = apply_lazy(beam.energy_eV, beam, options)
+        simops.setIncidentEnergy_keV(energy_eV / 1000.0) # keV
+
+        # Position
+        x0_m = apply_lazy(beam.x0_m, beam, options)
+        simops.setPosition(x0_m * 1e9) # nm
+
+        # Diameter
+        simops.Beam_Diameter = 0.0
+        simops.Beam_angle = 0.0
+
     def _export_beam_gaussian(self, beam, options, erracc, simdata, simops):
-        self._validate_beam(beam, options, erracc)
+        self._validate_beam_gaussian(beam, options, erracc)
 
         # Energy
         energy_eV = apply_lazy(beam.energy_eV, beam, options)

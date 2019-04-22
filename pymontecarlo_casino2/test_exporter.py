@@ -17,6 +17,7 @@ from casinotools.fileformat.casino2.SimulationOptions import \
 from pymontecarlo_casino2.exporter import Casino2Exporter
 
 from pymontecarlo.options.base import apply_lazy
+from pymontecarlo.options.beam import PencilBeam
 from pymontecarlo.options.material import Material
 from pymontecarlo.options.sample import VerticalLayerSample, HorizontalLayerSample
 from pymontecarlo.options.model import \
@@ -41,6 +42,26 @@ def _test_material_region(material, region):
         assert z in elements
 
     assert region.Rho == pytest.approx(material.density_kg_per_m3 / 1000.0, abs=1e-4)
+
+@pytest.mark.asyncio
+async def test_export_beam_pencil(event_loop, exporter, options, tmp_path):
+    options.beam = PencilBeam(10e3)
+
+    # Export
+    await exporter.export(options, tmp_path)
+
+    # Test
+    filepaths = list(tmp_path.glob('*.sim'))
+    assert len(filepaths) == 1
+
+    casfile = File()
+    casfile.readFromFilepath(filepaths[0])
+    simdata = casfile.getOptionSimulationData()
+    simops = simdata.getSimulationOptions()
+
+    assert simops.getIncidentEnergy_keV(0) == pytest.approx(options.beam.energy_keV, abs=1e-4)
+    assert simops.Beam_Diameter == pytest.approx(0.0, abs=1e-4)
+    assert simops._positionStart_nm == pytest.approx(0.0, abs=1e-4)
 
 @pytest.mark.asyncio
 async def test_export_substrate(event_loop, exporter, options, tmp_path):
