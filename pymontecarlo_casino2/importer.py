@@ -26,11 +26,11 @@ LINE_LOOKUP = {ATOMLINE_KA1: pyxray.xray_transition('Ka1'),
                ATOMLINE_KA2: pyxray.xray_transition('Ka2'),
                ATOMLINE_KB1: pyxray.xray_transition('Kb1'),
                ATOMLINE_KB2: pyxray.xray_transition('Kb3'),
-               ATOMLINE_LA: pyxray.xray_transitionset('La'),
+               ATOMLINE_LA: pyxray.xray_transition('La'),
                ATOMLINE_LB1: pyxray.xray_transition('Lb1'),
                ATOMLINE_LB2: pyxray.xray_transition('Lb2'),
                ATOMLINE_LG: pyxray.xray_transition('Lg1'),
-               ATOMLINE_MA: pyxray.xray_transitionset('Ma')}
+               ATOMLINE_MA: pyxray.xray_transition('Ma')}
 
 class Casino2Importer(ImporterBase):
 
