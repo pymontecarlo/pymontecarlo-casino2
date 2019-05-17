@@ -2,45 +2,73 @@
 """ """
 
 # Standard library modules.
-import unittest
-import logging
 
 # Third party modules.
+import pytest
 
 # Local modules.
-from pymontecarlo.testcase import TestCase
 from pymontecarlo.options.model.elastic_cross_section import ElasticCrossSectionModel
+import pymontecarlo.util.testutil as testutil
+from pymontecarlo.settings import Settings, XrayNotation
+from pymontecarlo.formats.series import SeriesBuilder
+from pymontecarlo.formats.document import DocumentBuilder
 
 from pymontecarlo_casino2.program import Casino2Program, Casino2ProgramBuilder
 
 # Globals and constants variables.
 
-class TestCasino2Program(TestCase):
+@pytest.fixture
+def program():
+    return Casino2Program()
 
-    def setUp(self):
-        super().setUp()
+@pytest.fixture
+def settings():
+    settings = Settings()
+    settings.preferred_xray_notation = XrayNotation.IUPAC
+    return settings
 
-        self.program = Casino2Program()
+@pytest.fixture
+def programbuilder():
+    return Casino2ProgramBuilder()
 
-    def testname(self):
-        self.assertEqual('Casino 2', self.program.name)
+def test_program_name(program):
+    assert program.name == 'Casino 2'
 
-class TestCasino2ProgramBuilder(TestCase):
+def test_program_hdf5(program, tmp_path):
+    testutil.assert_convert_parse_hdf5(program, tmp_path)
 
-    def testbuild(self):
-        b = Casino2ProgramBuilder()
-        programs = b.build()
-        self.assertEqual(1, len(programs))
+def test_program_copy(program):
+    testutil.assert_copy(program)
 
-    def testbuild2(self):
-        b = Casino2ProgramBuilder()
-        b.add_number_trajectories(100)
-        b.add_number_trajectories(200)
-        b.add_elastic_cross_section_model(ElasticCrossSectionModel.RUTHERFORD)
-        b.add_elastic_cross_section_model(ElasticCrossSectionModel.MOTT_CZYZEWSKI1990)
-        programs = b.build()
-        self.assertEqual(4, len(programs))
+def test_program_pickle(program):
+    testutil.assert_pickle(program)
 
-if __name__ == '__main__': #pragma: no cover
-    logging.getLogger().setLevel(logging.DEBUG)
-    unittest.main()
+def test_program_series(program, settings):
+    seriesbuilder = SeriesBuilder(settings)
+    program.convert_series(seriesbuilder)
+
+    s = seriesbuilder.build()
+
+    assert len(s) == 8
+    assert s['program'] == program.name
+    assert s['number of trajectories'] == 10000
+
+def test_program_document(program, settings):
+    documentbuilder = DocumentBuilder(settings)
+    program.convert_document(documentbuilder)
+    document = documentbuilder.build()
+    assert testutil.count_document_nodes(document) == 6
+
+def test_programbuilder(programbuilder):
+    programs = programbuilder.build()
+    assert len(programs) == 1
+
+def test_programbuilder_two_trajectories_two_models(programbuilder):
+    programbuilder.add_number_trajectories(100)
+    programbuilder.add_number_trajectories(200)
+    programbuilder.add_elastic_cross_section_model(ElasticCrossSectionModel.RUTHERFORD)
+    programbuilder.add_elastic_cross_section_model(ElasticCrossSectionModel.MOTT_CZYZEWSKI1990)
+
+    programs = programbuilder.build()
+
+    assert len(programs) == 4

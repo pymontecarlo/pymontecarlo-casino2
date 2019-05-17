@@ -26,11 +26,11 @@ LINE_LOOKUP = {ATOMLINE_KA1: pyxray.xray_transition('Ka1'),
                ATOMLINE_KA2: pyxray.xray_transition('Ka2'),
                ATOMLINE_KB1: pyxray.xray_transition('Kb1'),
                ATOMLINE_KB2: pyxray.xray_transition('Kb3'),
-               ATOMLINE_LA: pyxray.xray_transitionset('La'),
+               ATOMLINE_LA: pyxray.xray_transition('La'),
                ATOMLINE_LB1: pyxray.xray_transition('Lb1'),
                ATOMLINE_LB2: pyxray.xray_transition('Lb2'),
                ATOMLINE_LG: pyxray.xray_transition('Lg1'),
-               ATOMLINE_MA: pyxray.xray_transitionset('Ma')}
+               ATOMLINE_MA: pyxray.xray_transition('Ma')}
 
 class Casino2Importer(ImporterBase):
 
@@ -42,7 +42,7 @@ class Casino2Importer(ImporterBase):
         self.import_analysis_methods[PhotonIntensityAnalysis] = self._import_analysis_photonintensity
         self.import_analysis_methods[KRatioAnalysis] = self._import_analysis_kratio
 
-    def _import(self, options, dirpath, errors):
+    async def _import(self, options, dirpath, erracc):
         filepath = os.path.join(dirpath, self.DEFAULT_CAS_FILENAME)
 
         casfile = File()
@@ -51,9 +51,9 @@ class Casino2Importer(ImporterBase):
 
         simdata = casfile.getResultsFirstSimulation()
 
-        return self._run_importers(options, dirpath, errors, simdata)
+        return self._run_importers(options, dirpath, erracc, simdata)
 
-    def _import_analysis_photonintensity(self, analysis, dirpath, errors, simdata):
+    def _import_analysis_photonintensity(self, options, analysis, dirpath, erracc, simdata):
         emitted_builder = EmittedPhotonIntensityResultBuilder(analysis)
         intensities = simdata.get_total_xray_intensities_1_esr()
 
@@ -70,7 +70,7 @@ class Casino2Importer(ImporterBase):
 
         return [emitted_builder.build()]
 
-    def _import_analysis_kratio(self, analysis, dirpath, errors, simdata):
+    def _import_analysis_kratio(self, options, analysis, dirpath, erracc, simdata):
         # Do nothing
         return []
 
