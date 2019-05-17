@@ -51,11 +51,12 @@ class NumberTrajectoriesField(MultiValueFieldBase):
 class Casino2ProgramField(ProgramFieldBase):
 
     def __init__(self, model):
-        default_program=Casino2Program()
-        super().__init__(model, default_program=default_program)
+        super().__init__(model)
 
         self.field_number_trajectories = NumberTrajectoriesField()
         self.addLabelField(self.field_number_trajectories)
+
+        default_program = Casino2Program()
 
         self.field_elastic_cross_section_model = ElasticCrossSectionModelField()
         for model in ELASTIC_CROSS_SECTION_MODEL_LOOKUP:
