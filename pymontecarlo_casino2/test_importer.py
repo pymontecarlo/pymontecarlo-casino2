@@ -28,7 +28,7 @@ async def test_import_(event_loop, importer, options, testdatadir):
     assert len(simulation.results) == 1
 
     result = simulation.find_result(EmittedPhotonIntensityResult)[0]
-    assert len(result) == 50
+    assert len(result) == 43
 
     q = result[('Au', 'La')]
     assert q.n == pytest.approx(2.73255e-7, abs=1e-13)
