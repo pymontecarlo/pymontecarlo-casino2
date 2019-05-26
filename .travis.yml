@@ -14,7 +14,7 @@ before_install:
 install:
 - pip install --upgrade git+https://github.com/pymontecarlo/pymontecarlo.git
 - pip install --upgrade pip codecov
-- pip install --upgrade -e .[develop,gui]
+- pip install --upgrade -e .[dev,gui]
 script:
 - pytest
 after_success:

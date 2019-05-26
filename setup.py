@@ -30,7 +30,7 @@ with open(os.path.join(BASEDIR, 'requirements.txt'), 'r') as fp:
 
 EXTRAS_REQUIRE = {}
 with open(os.path.join(BASEDIR, 'requirements_dev.txt'), 'r') as fp:
-    EXTRAS_REQUIRE['develop'] = fp.read().splitlines()
+    EXTRAS_REQUIRE['dev'] = fp.read().splitlines()
 
 with open(os.path.join(BASEDIR, 'requirements_gui.txt'), 'r') as fp:
     EXTRAS_REQUIRE['gui'] = fp.read().splitlines()
