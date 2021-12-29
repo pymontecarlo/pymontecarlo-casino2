@@ -60,5 +60,4 @@ setup(
     extras_require=EXTRAS_REQUIRE,
     cmdclass=CMDCLASS,
     entry_points=ENTRY_POINTS,
-    test_suite="nose.collector",
 )
