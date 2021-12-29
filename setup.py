@@ -40,7 +40,7 @@ setup(
     url="https://github.com/pymontecarlo",
     description="Python interface for Monte Carlo simulation program Casino 2",
     long_description=LONG_DESCRIPTION,
-    long_description_content_type="text/x-rst",
+    long_description_content_type="text/markdown",
     author="Philippe T. Pinard and Hendrix Demers",
     author_email="philippe.pinard@gmail.com",
     license="Apache License 2.0",
