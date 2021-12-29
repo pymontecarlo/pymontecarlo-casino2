@@ -17,13 +17,12 @@ jobs:
         python-version: [3.x]
 
     steps:
-      - name: Configure git
-        run: |
-          git config lfs.fetchinclude pymontecarlo_casino2/templates
       - name: Checkout code
         uses: actions/checkout@v2
-        with:
-          lfs: true
+      - name: Fetch templates from Git LFS
+        run: |
+          git config lfs.fetchinclude pymontecarlo_casino2/templates
+          git lfs pull
       - name: Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@v1
         with:
