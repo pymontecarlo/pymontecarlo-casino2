@@ -13,12 +13,17 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [windows-latest]
+        os: [ubuntu-latest]
         python-version: [3.x]
 
     steps:
+      - name: Configure git
+        run: |
+          git config lfs.fetchinclude pymontecarlo_casino2/templates
       - name: Checkout code
         uses: actions/checkout@v2
+        with:
+          lfs: true
       - name: Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@v1
         with:
