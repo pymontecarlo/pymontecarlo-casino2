@@ -1,4 +1,4 @@
 # pyMonteCarlo-casino2
 
-Graphical user interface for **pyMonteCarlo**.
+Interface for [Casino2](https://www.gel.usherbrooke.ca/casino/index.html) Monte Carlo program.
 See https://github.com/pymontecarlo/pymontecarlo for more information.
