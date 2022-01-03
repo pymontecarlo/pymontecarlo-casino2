@@ -24,17 +24,10 @@ jobs:
           git config lfs.fetchinclude pymontecarlo_casino2/templates
           git lfs pull
       - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v1
+        uses: actions/setup-python@v2
         with:
           python-version: ${{ matrix.python-version }}
-      - name: Cache pip
-        uses: actions/cache@v1
-        with:
-          path: ~/.cache/pip
-          key: ${{ runner.os }}-pip-${{ hashFiles('requirements.txt') }}
-          restore-keys: |
-            ${{ runner.os }}-pip-
-            ${{ runner.os }}-
+          cache: "pip"
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip codecov
